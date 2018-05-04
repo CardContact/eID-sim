@@ -57,8 +57,8 @@ RestrictedIdentificationInfo                = require('scsh/eac/RestrictedIdenti
 RestrictedIdentification                    = require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
 
 var mrz =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
-			"6408125<1010318D<<<<<<<<<<<<<6" +
-			"MUSTERMANN<<ERIKA<<<<<<<<<<<<<";
+		"6408125<1010318D<<<<<<<<<<<<<6" +
+		"MUSTERMANN<<ERIKA<<<<<<<<<<<<<";
 
 var paceInfo = new PACEInfo();
 paceInfo.protocol = new ByteString("id-PACE-ECDH-GM-AES-CBC-CMAC-128", OID);
@@ -253,8 +253,6 @@ var cvcst = new TrustAnchor(c);
 
 
 
-
-
 /**
  * Create a card simulation object
  *
@@ -264,6 +262,19 @@ var cvcst = new TrustAnchor(c);
 function eIDSimulation() {
 	this.createFileSystem();
 	this.initialize();
+}
+
+
+
+/**
+ * Handle actions from context menu
+ */
+eIDSimulation.prototype.actionListener = function(source, action) {
+	switch(action) {
+		case "Stop":
+			source.dispose();
+			break;
+	}
 }
 
 
@@ -514,25 +525,21 @@ eIDSimulation.prototype.reset = function(type) {
 
 
 
-/**
+/*
  * Create new simulation and register with existing or newly created adapter singleton.
  *
  */
-eIDSimulation.newInstance = function() {
-	var sim = new eIDSimulation();
+var sim = new eIDSimulation();
 
-	if (typeof(CARDSIM) == "undefined") {
-		var adapter = new CardSimulationAdapter("JCOPSimulation", "8050");
-		adapter.setSimulationObject(sim);
-		adapter.start();
-		CARDSIM = adapter;
-		print("Simulation running...");
-	} else {
-		CARDSIM.setSimulationObject(sim);
-		print("Simulation replaced...");
-	}
+var tasks = Task.getTaskList();
+if (tasks.length == 0) {
+	var adapter = new CardSimulationAdapter("JCOPSimulation", "8050");
+	adapter.setSimulationObject(sim);
+	var task = new Task(adapter);
+	task.setContextMenu( [ "Stop" ] );
+	task.start();
+	print("Simulation running...");
+} else {
+	tasks[0].userObject.setSimulationObject(sim);
+	print("Simulation replaced...");
 }
-
-
-
-eIDSimulation.newInstance();

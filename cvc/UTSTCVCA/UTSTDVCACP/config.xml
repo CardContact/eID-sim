@@ -2,6 +2,7 @@
 <CAConfig>
   <sequence>
     <current>1</current>
+    <certificateType>1</certificateType>
     <currentCHR>UTSTDVCACP00001</currentCHR>
   </sequence>
 </CAConfig>

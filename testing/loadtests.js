@@ -1,10 +1,10 @@
 /**
  *  ---------
  * |.##> <##.|  Open Smart Card Development Platform (www.openscdp.org)
- * |#       #|  
+ * |#       #|
  * |#       #|  Copyright (c) 1999-2008 CardContact Software & System Consulting
  * |'##> <##'|  Andreas Schwier, 32429 Minden, Germany (www.cardcontact.de)
- *  --------- 
+ *  ---------
  *
  *  This file is part of OpenSCDP.
  *
@@ -40,8 +40,8 @@ var param = new Array();
 param["crypto"] = new Crypto();
 
 param["MRZ"] =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
-				"6408125<1010318D<<<<<<<<<<<<<6" +
-				"MUSTERMANN<<ERIKA<<<<<<<<<<<<<";
+		"6408125<1010318D<<<<<<<<<<<<<6" +
+		"MUSTERMANN<<ERIKA<<<<<<<<<<<<<";
 
 var certstorepath = GPSystem.mapFilename("../cvc", GPSystem.CWD);
 param["certstore"] = new CVCertificateStore(certstorepath);

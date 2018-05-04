@@ -479,7 +479,7 @@ eIDSimulation.prototype.initialize = function() {
  * @return the response APDU
  */
 eIDSimulation.prototype.processAPDU = function(capdu) {
-	print("Command APDU : " + capdu);
+//	print("Command APDU : " + capdu);
 
 	var apdu;
 
@@ -501,7 +501,7 @@ eIDSimulation.prototype.processAPDU = function(capdu) {
 	this.commandInterpreter.processAPDU(apdu);
 
 	var rapdu = apdu.getResponseAPDU();
-	print("Response APDU: " + rapdu);
+//	print("Response APDU: " + rapdu);
 	return rapdu;
 }
 
@@ -515,7 +515,7 @@ eIDSimulation.prototype.processAPDU = function(capdu) {
  * @return answer to reset
  */
 eIDSimulation.prototype.reset = function(type) {
-	print("Reset type: " + type);
+//	print("Reset type: " + type);
 
 	this.initialize();
 

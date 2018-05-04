@@ -4,7 +4,7 @@
  * |#       #|
  * |#       #|  Copyright (c) 1999-2018 CardContact Software & System Consulting
  * |'##> <##'|  Andreas Schwier, 32429 Minden, Germany (www.cardcontact.de)
- *  --------- 
+ *  ---------
  *
  *  This file is part of OpenSCDP.
  *
@@ -27,6 +27,7 @@
 
 CVCCA   = require('scsh/eac/CVCCA').CVCCA;
 PACE    = require('scsh/eac/PACE').PACE;
+CVCertificateStore  = require('scsh/eac/CVCertificateStore').CVCertificateStore;
 
 
 
@@ -35,7 +36,7 @@ PACE    = require('scsh/eac/PACE').PACE;
  *
  * @param {Crypto} crypto the crypto provider to use
  * @param {CVCertificateStore} certstore place to store keys and certificates
- */ 
+ */
 function CVCCAGenerator(crypto, certstore) {
 	this.crypto = crypto;
 	this.certstore = certstore;
@@ -71,7 +72,7 @@ CVCCAGenerator.prototype.log = function(msg) {
 CVCCAGenerator.prototype.createCVCA = function(path, policy) {
 	var cvca = new CVCCA(this.crypto, this.certstore, null, null, path);
 	cvca.setKeySpec(this.keyspec, this.taAlgorithmIdentifier);
-	
+
 	// Create a new request
 	var req = cvca.generateRequest(null, false);
 	this.log("Request: " + req);

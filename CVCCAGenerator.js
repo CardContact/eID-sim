@@ -301,4 +301,32 @@ CVCCAGenerator.setup = function() {
 			   includeDomainParameter: false
 			 };
 	g.createTerminal("/UTSTCVCA/UTSTDVCACP/UTTERM", policy);
+
+
+	var authorizationExtension = new ASN1(0x73,
+				new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+				new ASN1(0x53, new ByteString("03", HEX))
+			);
+
+	var policy = { certificateValidityDays: 3650,
+			   chatRoleOID: new ByteString("id-AT", OID),
+			   chatRights: new ByteString("3FFFFFFFFF", HEX),
+			   includeDomainParameter: false,
+			   extensions: [ authorizationExtension ]
+			 };
+	g.createTerminal("/UTATCVCA/UTATDVCANO/UTTERMPCAPIP", policy);
+	
+	var authorizationExtension = new ASN1(0x73,
+				new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+				new ASN1(0x53, new ByteString("01", HEX))
+			);
+
+	g.createTerminal("/UTATCVCA/UTATDVCANO/UTTERMPCAPP", policy);
+
+	var authorizationExtension = new ASN1(0x73,
+				new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+				new ASN1(0x53, new ByteString("02", HEX))
+			);
+
+	g.createTerminal("/UTATCVCA/UTATDVCANO/UTTERMPCAPI", policy);
 }

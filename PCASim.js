@@ -25,36 +25,42 @@
  */
 
 
-eIDCommandInterpreter                       = require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
 
-MFAccessController                          = require('eID/MFAccessController').MFAccessController;
-ePassAccessController                       = require('eID/ePassAccessController').ePassAccessController;
-eIDAccessController                         = require('eID/eIDAccessController').eIDAccessController;
-eSignAccessController                       = require('eID/eSignAccessController').eSignAccessController;
+eIDCommandInterpreter						= require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
 
-APDU                                        = require('cardsim/APDU').APDU;
-AuthenticationObject                        = require('cardsim/AuthenticationObject').AuthenticationObject;
-TrustAnchor                                 = require('cardsim/TrustAnchor').TrustAnchor;
-SignatureKey                                = require('cardsim/SignatureKey').SignatureKey;
-FileSelector                                = require('cardsim/FileSelector').FileSelector;
-FCP                                         = require('cardsim/FCP').FCP;
-TransparentEF                               = require('cardsim/TransparentEF').TransparentEF;
-FSNode                                      = require('cardsim/FSNode').FSNode;
-DF                                          = require('cardsim/DF').DF;
-SecureChannel                               = require('cardsim/SecureChannel').SecureChannel;
+MFAccessController							= require('eID/MFAccessController').MFAccessController;
+ePassAccessController						= require('eID/ePassAccessController').ePassAccessController;
+eIDAccessController							= require('eID/eIDAccessController').eIDAccessController;
+eSignAccessController						= require('eID/eSignAccessController').eSignAccessController;
 
-File                                        = require('scsh/file/File').File;
-EAC20                                       = require('scsh/eac/EAC20').EAC20;
-CVC                                         = require('scsh/eac/CVC').CVC;
-PACEInfo                                    = require('scsh/eac/PACE').PACEInfo;
-PACE                                        = require('scsh/eac/PACE').PACE;
-ChipAuthenticationInfo                      = require('scsh/eac/ChipAuthentication').ChipAuthenticationInfo;
-ChipAuthenticationDomainParameterInfo       = require('scsh/eac/ChipAuthentication').ChipAuthenticationDomainParameterInfo;
-ChipAuthenticationPublicKeyInfo             = require('scsh/eac/ChipAuthentication').ChipAuthenticationPublicKeyInfo;
-ChipAuthentication                          = require('scsh/eac/ChipAuthentication').ChipAuthentication;
-RestrictedIdentificationDomainParameterInfo = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationDomainParameterInfo;
-RestrictedIdentificationInfo                = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationInfo;
-RestrictedIdentification                    = require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
+PolymorphicObject							= require('pca/PolymorphicObject').PolymorphicObject;
+PolymorphicInfo								= require('pca/PolymorphicInfo').PolymorphicInfo;
+PCAAccessController							= require('pca/PCAAccessController').PCAAccessController;
+PCACommandInterpreter						= require('pca/PCACommandInterpreter').PCACommandInterpreter;
+
+APDU										= require('cardsim/APDU').APDU;
+AuthenticationObject						= require('cardsim/AuthenticationObject').AuthenticationObject;
+TrustAnchor									= require('cardsim/TrustAnchor').TrustAnchor;
+SignatureKey								= require('cardsim/SignatureKey').SignatureKey;
+FileSelector								= require('cardsim/FileSelector').FileSelector;
+FCP											= require('cardsim/FCP').FCP;
+TransparentEF								= require('cardsim/TransparentEF').TransparentEF;
+FSNode										= require('cardsim/FSNode').FSNode;
+DF											= require('cardsim/DF').DF;
+SecureChannel								= require('cardsim/SecureChannel').SecureChannel;
+
+File										= require('scsh/file/File').File;
+EAC20										= require('scsh/eac/EAC20').EAC20;
+CVC											= require('scsh/eac/CVC').CVC;
+PACEInfo									= require('scsh/eac/PACE').PACEInfo;
+PACE										= require('scsh/eac/PACE').PACE;
+ChipAuthenticationInfo						= require('scsh/eac/ChipAuthentication').ChipAuthenticationInfo;
+ChipAuthenticationDomainParameterInfo		= require('scsh/eac/ChipAuthentication').ChipAuthenticationDomainParameterInfo;
+ChipAuthenticationPublicKeyInfo				= require('scsh/eac/ChipAuthentication').ChipAuthenticationPublicKeyInfo;
+ChipAuthentication							= require('scsh/eac/ChipAuthentication').ChipAuthentication;
+RestrictedIdentificationDomainParameterInfo	= require('scsh/eac/RestrictedIdentification').RestrictedIdentificationDomainParameterInfo;
+RestrictedIdentificationInfo				= require('scsh/eac/RestrictedIdentification').RestrictedIdentificationInfo;
+RestrictedIdentification					= require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
 
 var mrz =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
 		"6408125<1010318D<<<<<<<<<<<<<6" +
@@ -164,6 +170,8 @@ var ciInfo = 	new ASN1(ASN1.SEQUENCE,
 				);
 
 
+var polymorphicInfo = new PolymorphicInfo();
+
 var cardAccess = new ASN1(ASN1.SET,
 							terminalAuthenticationInfo,
 							chipAuthenticationInfo.toTLV(),
@@ -176,7 +184,8 @@ var cardAccess = new ASN1(ASN1.SET,
 									privChipAuthenticationInfo.toTLV(),
 									privChipAuthenticationDomainParameterInfo.toTLV()
 								)
-							)
+							),
+							polymorphicInfo.toTLV()
 						);
 print("CardAccess:");
 print(cardAccess);
@@ -190,7 +199,8 @@ var cardSecurity = new ASN1(ASN1.SET,
 							restrictedIdentificationDomainParameterInfo.toTLV(),
 							chipAuthenticationDomainParameterInfo.toTLV(),
 							ciInfo,
-							chipAuthenticationPublicKeyInfo.toTLV()
+							chipAuthenticationPublicKeyInfo.toTLV(),
+							polymorphicInfo.toTLV()
 						);
 print("CardSecurity:");
 print(cardSecurity);
@@ -259,7 +269,7 @@ var cvcst = new TrustAnchor(c);
  * @class Class implementing a simple ISO 7816-4 card simulation
  * @constructor
  */
-function eIDSimulation() {
+function PCASimulation() {
 	this.createFileSystem();
 	this.initialize();
 }
@@ -269,7 +279,7 @@ function eIDSimulation() {
 /**
  * Handle actions from context menu
  */
-eIDSimulation.prototype.actionListener = function(source, action) {
+PCASimulation.prototype.actionListener = function(source, action) {
 	switch(action) {
 		case "Stop":
 			source.dispose();
@@ -282,7 +292,7 @@ eIDSimulation.prototype.actionListener = function(source, action) {
 /**
  * Initialize card runtime
  */
-eIDSimulation.prototype.createFileSystem = function() {
+PCASimulation.prototype.createFileSystem = function() {
 	var eac = new EAC20(new Crypto());
 
 	this.mf = new DF(FCP.newDF("3F00", null),
@@ -451,9 +461,48 @@ eIDSimulation.prototype.createFileSystem = function() {
 	signpin.associatedKey = signaturekey;
 	dFeSign.addObject(signaturekey);
 
+
+	// Point 0
+	var b = new Key();
+	b.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
+	b.setComponent(Key.ECC_QX, new ByteString("033cabc8841ee36bd2e8022c4637b72bd2949c29e8ec6a111746719c6374c0af6df52b851afcc4dd", HEX));
+	b.setComponent(Key.ECC_QY, new ByteString("5b48aaad794737733f611be1dec1b46badee9c20e3abb915fd44a0d6ccf25eee4ed5d001582668e3", HEX));
+
+	// Point 1
+	var cipherPI = new Key();
+	cipherPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
+	cipherPI.setComponent(Key.ECC_QX, new ByteString("9960f6d7bedcc3e29db66f9c01b88cea9e68e6238bd62ff750bcd8a8c671c869202ef632d0f8233b", HEX));
+	cipherPI.setComponent(Key.ECC_QY, new ByteString("1b79468169deffe0a50a559ec2a77d7b3e74b7f85be8a14738aa8a57d3907066c541bcbff67b6181", HEX));
+
+	// Point 2
+	var cipherPP = new Key();
+	cipherPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
+	cipherPP.setComponent(Key.ECC_QX, new ByteString("368706de2dea7e679b0eb153b11ff9cad4e457fff2c3d35b74e28c15a76b1152e1326efe184b5c4c", HEX));
+	cipherPP.setComponent(Key.ECC_QY, new ByteString("a629e144b80d1c1aa5c7c0d2180409027f34d15dbfe23ae40c5038ab7db8715eb118b66f0f535ce1", HEX));
+
+	// Point 3
+	var pubKeyPI = new Key();
+	pubKeyPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
+	pubKeyPI.setComponent(Key.ECC_QX, new ByteString("9426cebf206de90b56c083f032b8f82b02501c4f7cddd72956525c539fc34a6766642998acd2ab2d", HEX));
+	pubKeyPI.setComponent(Key.ECC_QY, new ByteString("cd490dc6200a2346de929996a457cb336ce179686fc71c4fff04ff29618d639bff8da7b052de86b5", HEX));
+
+	// Point 4
+	var pubKeyPP = new Key();
+	pubKeyPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
+	pubKeyPP.setComponent(Key.ECC_QX, new ByteString("4c89ed2eb8fe5753b6832aeee93224fac1e6cdd854b6d98c2fb176915d0581ac1d9f1c0fc9ce9ca4", HEX));
+	pubKeyPP.setComponent(Key.ECC_QY, new ByteString("9d7e437bfafc10cd6bd5f6afd2e5f58bb4c8456caf65efb62336a3d75ce3f02d22da178032fab50b", HEX));
+
+    var pip = new PolymorphicObject(b, cipherPI, cipherPP, pubKeyPI, pubKeyPP);
+
+    var dFPCA = new DF(FCP.newDF(null, new ByteString("A0 00 00 07 73 50 43 41", HEX)));
+    dFPCA.addObject(pip);
+
+	dFPCA.addMeta("accessController", new PCAAccessController());
+
 	this.mf.add(dFePass);
 	this.mf.add(dFeID);
 	this.mf.add(dFeSign);
+    this.mf.add(dFPCA);
 
 	print(this.mf.dump(""));
 }
@@ -463,9 +512,9 @@ eIDSimulation.prototype.createFileSystem = function() {
 /**
  * Initialize card runtime
  */
-eIDSimulation.prototype.initialize = function() {
+PCASimulation.prototype.initialize = function() {
 	this.fileSelector = new FileSelector(this.mf);
-	this.commandInterpreter = new eIDCommandInterpreter(this.fileSelector);
+	this.commandInterpreter = new PCACommandInterpreter(this.fileSelector);
 
 }
 
@@ -478,7 +527,7 @@ eIDSimulation.prototype.initialize = function() {
  * @type ByteString
  * @return the response APDU
  */
-eIDSimulation.prototype.processAPDU = function(capdu) {
+PCASimulation.prototype.processAPDU = function(capdu) {
 //	print("Command APDU : " + capdu);
 
 	var apdu;
@@ -514,7 +563,7 @@ eIDSimulation.prototype.processAPDU = function(capdu) {
  * @type ByteString
  * @return answer to reset
  */
-eIDSimulation.prototype.reset = function(type) {
+PCASimulation.prototype.reset = function(type) {
 //	print("Reset type: " + type);
 
 	this.initialize();
@@ -529,7 +578,7 @@ eIDSimulation.prototype.reset = function(type) {
  * Create new simulation and register with existing or newly created adapter singleton.
  *
  */
-var sim = new eIDSimulation();
+var sim = new PCASimulation();
 
 var tasks = Task.getTaskList();
 if (tasks.length == 0) {

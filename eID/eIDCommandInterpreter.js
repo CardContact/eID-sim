@@ -193,6 +193,8 @@ eIDCommandInterpreter.prototype.performPACE = function(apdu) {
 		var chat = se.t.AT.find(0x7F4C);
 		this.chat = chat;
 
+		this.certExt = se.t.AT.find(CVC.TAG_EXTN);
+
 		this.paceao = this.fileSelector.getObject(AuthenticationObject.TYPE_PACE, keyid);
 		if (!this.paceao) {
 			throw new GPError("CommandInterpreter", GPError.INVALID_DATA, APDU.SW_RDNOTFOUND, "PACE password not found");

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="doctg.xsl" ?>
+<testgroup 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://www.openscdp.org/schema/testframework-1.0.xsd"
+	id="tg_PCA" arrayElement="testcase,function" arrayIndex="id,Name">
+	<name>PCA</name>
+	<description>
+		<p>This group of tests verify the implementation of the PCA</p>
+	</description>
+	<reference>
+		<p>ISO 7816-4</p>
+	</reference>
+
+<!-- Initializing the test group environment -->
+<!-- Enable this if you want your own constructor
+	<constructor Param="name, parameter">
+		<Script><![CDATA[
+	
+	// Call constructor of super class TestGroup and define name of test group
+	TestGroup.call(this, name, parameter);
+	
+		]]></Script>
+	</constructor>
+-->
+
+	
+<!-- Setup method called before each test case is executed -->
+	<setup>
+		<Script><![CDATA[
+
+		this.card = new Card(_scsh3.reader);
+		this.card.reset(Card.RESET_COLD);
+
+		]]></Script>
+	</setup>
+
+
+	
+<!-- Teardown method called after each test case is executed -->
+	<teardown>
+		<Script><![CDATA[
+		
+//	print("TestGroup.teardown() called.");
+
+		]]></Script>
+	</teardown>
+
+
+
+<!-- Each test case must be declared with an id that starts with a 3 digit number -->
+
+	<testcase id="001">
+		<name>Randomized PIP Retrieval</name>
+		<description>
+			<p>Retrieve Randomized PIP</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var eac = newEAC20(this.parameter.crypto, this.card);
+
+        print("Reading EF.CardAccess");
+		eac.readCardAccess();
+
+		var chat = new ASN1(0x7F4C, 
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-AT", OID)),
+						new ASN1(0x53, new ByteString("0000000000", HEX))
+					);
+
+		var pwd = new ByteString(this.parameter.PIN, ASCII);
+		print("Performing PACE with chat...");
+		print(chat);
+		var certExt = 
+			new ASN1(0x65, 
+					new ASN1(0x73,
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+						new ASN1(0x53, new ByteString("03", HEX))
+					)
+			);
+		
+		eac.performPACE(0, EAC20.ID_PIN, pwd, chat, certExt);
+
+		var certstore = this.parameter.certstore;
+		var takeypath = this.parameter.pcapipcertpath;
+		var chr = certstore.getCurrentCHR(takeypath);
+		if (chr == null) {
+			throw new GPError("EAC", GPError.OBJECT_NOT_FOUND, 0, "Could not determine current terminal key for " + takeypath);
+		}
+
+		var fromcar = eac.getTrustAnchorCAR();
+		var cvcchain = certstore.getCertificateChain(takeypath, chr, fromcar);
+		this.assertTrue(cvcchain, "Could not build certificate chain from " + fromcar + " to " + chr);
+
+		print("Verify certificate chain");
+		eac.verifyCertificateChain(cvcchain);
+
+		// Get key for terminal certificate
+		var termkey = certstore.getPrivateKey(takeypath, chr);
+
+		print("Prepare for chip authentication");
+		eac.prepareChipAuthentication(eac.getCAKeyId());
+
+		print("Perform terminal authentication");
+		eac.performTerminalAuthentication(termkey);
+		
+		print("Reading EF.CardSecurity");
+		eac.readCardSecurity();
+
+		print("Performing chip authentication");
+		assert(eac.performChipAuthentication(), "Chip authentication failed");
+
+		// Select PCA 
+		eac.selectADF(this.parameter.PCAAID);
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-reduced-compressed", OID));
+		eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var dad = eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [0x9000]);
+		print (new ASN1(dad));
+		]]></Script>
+	</testcase>
+
+</testgroup>

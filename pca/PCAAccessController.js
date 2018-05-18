@@ -52,6 +52,14 @@ exports.PCAAccessController = PCAAccessController;
 
 
 
+/**
+ * Check if the terminal is authorized to perform the PCA retrieval
+ * by checking the Authorization Extension of the terminal certificate
+ * 
+ * @param {eIDCommandInterpreter} ci the command interpreter
+ * @param {APDU} apdu the APDU used to access the object
+ * @param {Number} bit representing PCA function
+ */
 PCAAccessController.prototype.checkAuthorizationExtension = function(ci, apdu, bit) {
 	GPSystem.trace("checkAuthorizationExtension");
 
@@ -86,8 +94,8 @@ PCAAccessController.prototype.checkAuthorizationExtension = function(ci, apdu, b
 			}
 
 			// Check if the terminal is authorized to perform the PCA retrieval
-			GPSystem.trace("Authorized Terminal: " + authorizationBM && bit == bit);
-			return authorizationBM && bit == bit;
+			GPSystem.trace("Authorized Terminal (bit " + bit + "): " + ((authorizationBM & bit) == bit));
+			return (authorizationBM & bit) == bit;
 		}
 	}
 
@@ -95,6 +103,27 @@ PCAAccessController.prototype.checkAuthorizationExtension = function(ci, apdu, b
 	return false;
 }
 
+
+
+/**
+ * Check if the PACE PIN Security Status is satisfied
+ * 
+ * @param {eIDCommandInterpreter} ci the command interpreter
+ * @type boolean
+ * @return true if access is allowed
+ */
+PCAAccessController.prototype.checkPacePINStatus = function(ci) {
+	var paceao = ci.paceao;
+	if (!paceao) {
+		return false;
+	}
+
+	if (paceao.id != 3) {
+		return false;
+	}
+
+	return ci.fileSelector.isAuthenticated(true, paceao);
+}
 
 
 /**
@@ -120,6 +149,10 @@ PCAAccessController.prototype.checkRight = function(ci, apdu, bit, retrievalType
 
 	// Check PCA function
 	if (retrievalType) {
+		if (!this.checkPacePINStatus(ci)) {
+			return false;
+		}
+
 		return this.checkAuthorizationExtension(ci, apdu, retrievalType);
 	}
 

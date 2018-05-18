@@ -68,6 +68,44 @@ PCACommandInterpreter.prototype.performPolymorphicAuthentication = function(apdu
 	var response = polymorphicObject.getData(oid);
 	apdu.setRData(response);
 	apdu.setSW(APDU.SW_OK);
+	var paceao = this.fileSelector.getObject(AuthenticationObject.TYPE_PACE, 3);
+	this.fileSelector.removeAuthenticationState(true, paceao);
+}
+
+
+
+/**
+ * Process a MANAGE SECURITY ENVIRONMENT APDU
+ *
+ * @param {APDU} apdu the command and response APDU
+ */
+PCACommandInterpreter.prototype.manageSecurityEnvironment = function(apdu) {
+	GPSystem.trace("PCACommandInterpreter.manageSecurityEnvironment()... apdu: " + apdu);
+	
+	if (apdu.getP1() == 0x41 && apdu.getP2() == 0xA4) {
+		var list = new TLVList(apdu.getCData(), TLV.EMV);
+		var cmr = list.find(0x80);
+		if (cmr) {
+			var oid = cmr.getValue();
+			var retrievalType = PolymorphicObject.getRetrievalType(oid);
+			var isCompressed = PolymorphicObject.isCompressed(oid);
+			var isReduced = PolymorphicObject.isReduced(oid);
+			
+			var polymorphicInfo = this.fileSelector.getMeta("polymorphicInfo");
+			if (retrievalType == PolymorphicObject.RANDOMIZED_PI_RETRIEVAL && !polymorphicInfo.randomizedPI ||
+				retrievalType == PolymorphicObject.RANDOMIZED_PP_RETRIEVAL && !polymorphicInfo.randomizedPP ||
+				retrievalType == PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL && !polymorphicInfo.randomizedPIP ||
+				isCompressed && !polymorphicInfo.compressedEncoding ||
+				!isCompressed && !polymorphicInfo.uncompressedEncoding ||
+				isReduced && !polymorphicInfo.reducedEncoding ||
+				!isReduced && !polymorphicInfo.regularEncoding
+			) {
+				throw new GPError("CommandInterpreter", GPError.INVALID_DATA, APDU.SW_INVDATA, "Algorithm not supported");
+			}
+		}
+	}
+	
+	eIDCommandInterpreter.prototype.manageSecurityEnvironment.call(this, apdu);
 }
 
 

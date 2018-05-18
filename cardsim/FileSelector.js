@@ -186,6 +186,28 @@ FileSelector.prototype.addAuthenticationState = function(global, ao) {
 
 
 /**
+ * Remove authenticated object from the list of authentication states for the local DF or global MF
+ *
+ * @param{boolean} global true if global state else local DF state
+ * @param{AuthenticationObject} ao the authentication object for which authentication was successfull
+ */
+FileSelector.prototype.removeAuthenticationState = function(global, ao) {
+	var list;
+	if (global) {
+		list = this.globalAuthenticationState;
+	} else {
+		list = this.localAuthenticationState;
+	}
+
+	var index = list.indexOf(ao);
+	if (index > -1) {
+		list.splice(index, 1);
+	}
+}
+
+
+
+/**
  * Add authenticated object to the list of authentication states for the local DF or global MF
  *
  * @param{boolean} global true if global state else local DF state

@@ -76,25 +76,10 @@ chipAuthenticationInfo.protocol = new ByteString("id-CA-ECDH-AES-CBC-CMAC-128", 
 chipAuthenticationInfo.version = 2;
 chipAuthenticationInfo.keyId = 16;
 
-var privChipAuthenticationInfo = new ChipAuthenticationInfo();
-privChipAuthenticationInfo.protocol = new ByteString("id-CA-ECDH-AES-CBC-CMAC-128", OID);
-privChipAuthenticationInfo.version = 2;
-privChipAuthenticationInfo.keyId = 17;
-
-var chipAuthenticationInfoDG14 = new ChipAuthenticationInfo();
-chipAuthenticationInfoDG14.protocol = new ByteString("id-CA-ECDH-3DES-CBC-CBC", OID);
-// chipAuthenticationInfoDG14.protocol = new ByteString("id-CA-ECDH-AES-CBC-CMAC-128", OID);
-chipAuthenticationInfoDG14.version = 1;
-
 var chipAuthenticationDomainParameterInfo = new ChipAuthenticationDomainParameterInfo();
 chipAuthenticationDomainParameterInfo.protocol = new ByteString("id-CA-ECDH", OID);
 chipAuthenticationDomainParameterInfo.standardizedDomainParameter = 13;
 chipAuthenticationDomainParameterInfo.keyId = 16;
-
-var privChipAuthenticationDomainParameterInfo = new ChipAuthenticationDomainParameterInfo();
-privChipAuthenticationDomainParameterInfo.protocol = new ByteString("id-CA-ECDH", OID);
-privChipAuthenticationDomainParameterInfo.standardizedDomainParameter = 13;
-privChipAuthenticationDomainParameterInfo.keyId = 17;
 
 var groupCAPrk = new Key("kp_prk_GroupCAKey.xml");
 var groupCAPuk = new Key("kp_puk_GroupCAKey.xml");
@@ -107,62 +92,10 @@ chipAuthenticationPublicKeyInfo.standardizedDomainParameter = 13;
 chipAuthenticationPublicKeyInfo.publicKey = groupCAPuk;
 chipAuthenticationPublicKeyInfo.keyId = 16;
 
-var chipAuthenticationPublicKeyInfoDG14 = new ChipAuthenticationPublicKeyInfo();
-chipAuthenticationPublicKeyInfoDG14.protocol = new ByteString("id-PK-ECDH", OID);
-chipAuthenticationPublicKeyInfoDG14.algorithm = new ByteString("id-ecPublicKey", OID);
-chipAuthenticationPublicKeyInfoDG14.publicKey = groupCAPuk;
-
-var chipCAPrk = new Key("kp_prk_UniqueCAKey.xml");
-var chipCAPuk = new Key("kp_puk_UniqueCAKey.xml");
-chipCAPrk.setComponent(Key.ECC_CURVE_OID, chipCAPrk.getComponent(Key.ECC_CURVE_OID));
-
-var privChipAuthenticationPublicKeyInfo = new ChipAuthenticationPublicKeyInfo();
-privChipAuthenticationPublicKeyInfo.protocol = new ByteString("id-PK-ECDH", OID);
-privChipAuthenticationPublicKeyInfo.algorithm = new ByteString("standardizedDomainParameter", OID);
-privChipAuthenticationPublicKeyInfo.standardizedDomainParameter = 13;
-privChipAuthenticationPublicKeyInfo.publicKey = chipCAPuk;
-privChipAuthenticationPublicKeyInfo.keyId = 17;
-
 var terminalAuthenticationInfo = new ASN1("terminalAuthenticationInfo", ASN1.SEQUENCE,
 										new ASN1("protocol", ASN1.OBJECT_IDENTIFIER, new ByteString("id-TA", OID)),
 										new ASN1("version", ASN1.INTEGER, ByteString.valueOf(2))
 									);
-
-var terminalAuthenticationInfoDG14 = new ASN1("terminalAuthenticationInfo", ASN1.SEQUENCE,
-										new ASN1("protocol", ASN1.OBJECT_IDENTIFIER, new ByteString("id-TA", OID)),
-										new ASN1("version", ASN1.INTEGER, ByteString.valueOf(1))
-									);
-
-var restrictedIdentificationDomainParameterInfo = new RestrictedIdentificationDomainParameterInfo();
-restrictedIdentificationDomainParameterInfo.protocol = new ByteString("id-RI-ECDH", OID);
-restrictedIdentificationDomainParameterInfo.standardizedDomainParameter = 13;
-
-var rIKeys = [];
-
-var restrictedIdentificationRecovation = new RestrictedIdentificationInfo();
-restrictedIdentificationRecovation.protocol = new ByteString("id-RI-ECDH-SHA-256", OID);
-restrictedIdentificationRecovation.version = 1;
-restrictedIdentificationRecovation.keyId = 0x8;
-restrictedIdentificationRecovation.authorizedOnly = false;
-
-var riKey = new Key("kp_prk_RevocationKey.xml");
-rIKeys[restrictedIdentificationRecovation.keyId] = {
-	prk: riKey,
-	authorizedOnly: false
-};
-
-
-var restrictedIdentificationSector = new RestrictedIdentificationInfo();
-restrictedIdentificationSector.protocol = new ByteString("id-RI-ECDH-SHA-256", OID);
-restrictedIdentificationSector.version = 1;
-restrictedIdentificationSector.keyId = 0x9;
-restrictedIdentificationSector.authorizedOnly = true;
-
-var riKey = new Key("kp_prk_IDKey.xml");
-rIKeys[restrictedIdentificationSector.keyId] = {
-	prk: riKey,
-	authorizedOnly: true
-};
 
 var ciInfo = 	new ASN1(ASN1.SEQUENCE,
 					new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-CI", OID)),
@@ -178,13 +111,6 @@ var cardAccess = new ASN1(ASN1.SET,
 							paceInfo.toTLV(),
 							chipAuthenticationDomainParameterInfo.toTLV(),
 							ciInfo,
-							new ASN1(ASN1.SEQUENCE,
-								new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PT", OID)),
-								new ASN1(ASN1.SET,
-									privChipAuthenticationInfo.toTLV(),
-									privChipAuthenticationDomainParameterInfo.toTLV()
-								)
-							),
 							polymorphicInfo.toTLV()
 						);
 print("CardAccess:");
@@ -194,9 +120,6 @@ var cardSecurity = new ASN1(ASN1.SET,
 							terminalAuthenticationInfo,
 							chipAuthenticationInfo.toTLV(),
 							paceInfo.toTLV(),
-							restrictedIdentificationRecovation.toTLV(),
-							restrictedIdentificationSector.toTLV(),
-							restrictedIdentificationDomainParameterInfo.toTLV(),
 							chipAuthenticationDomainParameterInfo.toTLV(),
 							ciInfo,
 							chipAuthenticationPublicKeyInfo.toTLV(),
@@ -205,29 +128,6 @@ var cardSecurity = new ASN1(ASN1.SET,
 print("CardSecurity:");
 print(cardSecurity);
 
-var chipSecurity = new ASN1(ASN1.SET,
-							terminalAuthenticationInfo,
-							privChipAuthenticationInfo.toTLV(),
-							paceInfo.toTLV(),
-							restrictedIdentificationRecovation.toTLV(),
-							restrictedIdentificationSector.toTLV(),
-							restrictedIdentificationDomainParameterInfo.toTLV(),
-							privChipAuthenticationDomainParameterInfo.toTLV(),
-							ciInfo,
-							privChipAuthenticationPublicKeyInfo.toTLV()
-						);
-print("ChipSecurity:");
-print(chipSecurity);
-
-var dg14 = new ASN1(0x6E,
-					new ASN1(ASN1.SET,
-							terminalAuthenticationInfoDG14,
-							chipAuthenticationInfoDG14.toTLV(),
-							chipAuthenticationPublicKeyInfoDG14.toTLV()
-						)
-				);
-
-
 var dskey = new Key("kp_prk_DocSigner.xml");
 var dscert = new X509("C_DocSigner.cer");
 
@@ -235,14 +135,6 @@ var gen = new CMSGenerator(CMSGenerator.TYPE_SIGNED_DATA);
 gen.setDataContent(cardSecurity.getBytes());
 gen.addSigner(dskey, dscert, new ByteString("id-sha256", OID), true);
 var signedCardSecurity = gen.generate(new ByteString("id-SecurityObject", OID));
-//print(new ASN1(signedCardSecurity));
-
-var gen = new CMSGenerator(CMSGenerator.TYPE_SIGNED_DATA);
-gen.setDataContent(chipSecurity.getBytes());
-gen.addSigner(dskey, dscert, new ByteString("id-sha256", OID), true);
-var signedChipSecurity = gen.generate(new ByteString("id-SecurityObject", OID));
-//print(new ASN1(signedChipSecurity));
-
 
 // Load root certificates
 var f = new File(GPSystem.mapFilename("cvc/UTISCVCA/UTISCVCA00001.selfsigned.cvcert", GPSystem.CWD));
@@ -297,17 +189,13 @@ PCASimulation.prototype.createFileSystem = function() {
 
 	this.mf = new DF(FCP.newDF("3F00", null),
 						new TransparentEF(FCP.newTransparentEF("011C", 0x1C, 100), cardAccess.getBytes()),
-						new TransparentEF(FCP.newTransparentEF("011D", 0x1D, 100), signedCardSecurity),
-						new TransparentEF(FCP.newTransparentEF("011B", 0x1B, 100), signedChipSecurity)
+						new TransparentEF(FCP.newTransparentEF("011D", 0x1D, 100), signedCardSecurity)
 					);
 
 	this.mf.addMeta("accessController", new MFAccessController());
 	this.mf.addMeta("groupChipAuthenticationPrivateKey", groupCAPrk);
 	this.mf.addMeta("groupChipAuthenticationPublicKey", groupCAPuk);
 	this.mf.addMeta("groupChipAuthenticationInfo", chipAuthenticationInfo);
-	this.mf.addMeta("uniqueChipAuthenticationPrivateKey", chipCAPrk);
-	this.mf.addMeta("uniqueChipAuthenticationPublicKey", chipCAPuk);
-	this.mf.addMeta("uniqueChipAuthenticationInfo", privChipAuthenticationInfo);
 
 	this.mf.addMeta("paceInfo", paceInfo);
 	this.mf.addMeta("idPICC", new ByteString(EAC20.decodeDocumentNumber(mrz), ASCII));
@@ -315,6 +203,7 @@ PCASimulation.prototype.createFileSystem = function() {
 	this.mf.addObject(cvcat);
 	this.mf.addObject(cvcst);
 	this.mf.addMeta("currentDate", { currentDate: currentDate} );
+	this.mf.addMeta("polymorphicInfo", polymorphicInfo);
 
 	var pacemrz = new AuthenticationObject("PACE_MRZ", AuthenticationObject.TYPE_PACE, 1,
 									eac.hashMRZ(mrz));
@@ -352,133 +241,23 @@ PCASimulation.prototype.createFileSystem = function() {
 
 	this.mf.addMeta("efCVCA", efCVCA);
 
-	var com = (new ASN1(0x60,
-					new ASN1(0x5F01, new ByteString("0107", ASCII)),
-					new ASN1(0x5F36, new ByteString("040000", ASCII)),
-					new ASN1(0x5C, new ByteString("6175637664", HEX))
-				)).getBytes();
-	var dg1 = (new ASN1(0x61, new ASN1(0x5F1F, new ByteString(mrz, ASCII)))).getBytes();
-	print(dg1);
-
-	var dFePass = 		new DF(FCP.newDF(null, new ByteString("A0000002471001", HEX)),
-							new TransparentEF(FCP.newTransparentEF("011E", 0x1E, 100),		// EF.COM
-								com),
-							new TransparentEF(FCP.newTransparentEF("011D", 0x1D, 100),		// EF.SOD
-								new ByteString("77050123456789", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0101", 0x01, 100),		// EF.DG1
-								dg1),
-							new TransparentEF(FCP.newTransparentEF("0102", 0x02, 100),		// EF.DG2
-								new ByteString("75037F6101AA", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0103", 0x03, 100),		// EF.DG3
-								new ByteString("63037F6101AA", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0104", 0x04, 100),		// EF.DG4
-								new ByteString("76037F6101AA", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010E", 0x0E, 100),		// EF.DG14
-								dg14.getBytes()),
-							efCVCA
-						);
-
-	dFePass.addMeta("accessController", new ePassAccessController());
-
-	dFePass.addMeta("KENC", eac.calculateBACKey(mrz, 1));
-	dFePass.addMeta("KMAC", eac.calculateBACKey(mrz, 2));
-
-	dFePass.addMeta("chipAuthenticationPrivateKey", groupCAPrk);
-	dFePass.addMeta("chipAuthenticationPublicKey", groupCAPuk);
-	dFePass.addMeta("chipAuthenticationInfo", chipAuthenticationInfoDG14);
-
-
-	var dFeID = 		new DF(FCP.newDF(null, new ByteString("E80704007F00070302", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0101", 0x01, 100), 		// EF.DG1
-								new ByteString("6100", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0102", 0x02, 100), 		// EF.DG2
-								new ByteString("6200", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0103", 0x03, 100), 		// EF.DG3
-								new ByteString("6300", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0104", 0x04, 100), 		// EF.DG4
-								new ByteString("6400", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0105", 0x05, 100), 		// EF.DG5
-								new ByteString("6500", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0106", 0x06, 100), 		// EF.DG6
-								new ByteString("6600", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0107", 0x07, 100), 		// EF.DG7
-								new ByteString("6700", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0108", 0x08, 100), 		// EF.DG8
-								new ByteString("6800", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0109", 0x09, 100), 		// EF.DG9
-								new ByteString("6900", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010A", 0x0A, 100), 		// EF.DG10
-								new ByteString("6A00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010B", 0x0B, 100), 		// EF.DG11
-								new ByteString("6B00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010C", 0x0C, 100), 		// EF.DG12
-								new ByteString("6C00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010D", 0x0D, 100), 		// EF.DG13
-								new ByteString("6D00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010E", 0x0E, 100), 		// EF.DG14
-								new ByteString("6E00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("010F", 0x0F, 100), 		// EF.DG15
-								new ByteString("6F00", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0110", 0x10, 100), 		// EF.DG16
-								new ByteString("7000", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0111", 0x11, 200), 		// EF.DG17
-								new ByteString("7100", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0112", 0x12, 100), 		// EF.DG18
-								new ByteString("7200", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0113", 0x13, 100), 		// EF.DG19
-								new ByteString("7300", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0114", 0x14, 100), 		// EF.DG20
-								new ByteString("7400", HEX)),
-							new TransparentEF(FCP.newTransparentEF("0115", 0x15, 100), 		// EF.DG21
-								new ByteString("7500", HEX))
-						);
-
-	dFeID.addMeta("accessController", new eIDAccessController());
-	dFeID.addMeta("DateOfExpiry", "20161231");
-	dFeID.addMeta("DateOfBirth", "19661109");
-	dFeID.addMeta("CommunityID", "1234");
-	dFeID.addMeta("RIKeys", rIKeys);
-
-
-	var dFeSign =		new DF(FCP.newDF(null, new ByteString("A000000167455349474E", HEX)),
-							new TransparentEF(FCP.newTransparentEF("C000", 1, 2048)), 		// EF.C.ZDA.QES
-							new TransparentEF(FCP.newTransparentEF("C001", 2, 2048)) 		// EF.C.ICC.QES
-						);
-
-	dFeSign.addMeta("accessController", new eSignAccessController());
-
-	var signpin = new AuthenticationObject("PIN.QES", AuthenticationObject.TYPE_PIN, 1);
-	signpin.isTerminated = true;
-	signpin.allowTerminate = true;
-	signpin.allowResetRetryCounter = true;
-	signpin.allowResetValue = true;
-	signpin.allowChangeReferenceData = true;
-	signpin.unblockAuthenticationObject = pacepuk;
-	dFeSign.addObject(signpin);
-
-	var signaturekey = new SignatureKey("PrK.QES", 1);
-	signaturekey.useAuthenticationObject = signpin;
-	signpin.associatedKey = signaturekey;
-	dFeSign.addObject(signaturekey);
-
-
 	// Point 0
 	var b = new Key();
 	b.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	b.setComponent(Key.ECC_QX, new ByteString("033cabc8841ee36bd2e8022c4637b72bd2949c29e8ec6a111746719c6374c0af6df52b851afcc4dd", HEX));
-	b.setComponent(Key.ECC_QY, new ByteString("5b48aaad794737733f611be1dec1b46badee9c20e3abb915fd44a0d6ccf25eee4ed5d001582668e3", HEX));
+	b.setComponent(Key.ECC_QX, new ByteString("26e848758cd601a62c3c96f29001259e4560763f9e79bf9e35e3b69103e4d442b4e9d4a8de208c45", HEX));
+	b.setComponent(Key.ECC_QY, new ByteString("99caee26203cec3ff6ecdedd2d71bc6871d3a41da4d4d11885bb0b4c4bb05866eac2d9a6553fdf49", HEX));
 
 	// Point 1
 	var cipherPI = new Key();
 	cipherPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	cipherPI.setComponent(Key.ECC_QX, new ByteString("9960f6d7bedcc3e29db66f9c01b88cea9e68e6238bd62ff750bcd8a8c671c869202ef632d0f8233b", HEX));
-	cipherPI.setComponent(Key.ECC_QY, new ByteString("1b79468169deffe0a50a559ec2a77d7b3e74b7f85be8a14738aa8a57d3907066c541bcbff67b6181", HEX));
+	cipherPI.setComponent(Key.ECC_QX, new ByteString("474fb982ab20899d3633ae479b6983c309350f55aaeb3cf7d22eaf81d89488859da4bd3b03f3b0e2", HEX));
+	cipherPI.setComponent(Key.ECC_QY, new ByteString("a5954fc8036359c530c87c05f5699b194a95b98d5a22e1cbf0e576e2d449ebf828a07456903b556a", HEX));
 
 	// Point 2
 	var cipherPP = new Key();
 	cipherPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	cipherPP.setComponent(Key.ECC_QX, new ByteString("368706de2dea7e679b0eb153b11ff9cad4e457fff2c3d35b74e28c15a76b1152e1326efe184b5c4c", HEX));
-	cipherPP.setComponent(Key.ECC_QY, new ByteString("a629e144b80d1c1aa5c7c0d2180409027f34d15dbfe23ae40c5038ab7db8715eb118b66f0f535ce1", HEX));
+	cipherPP.setComponent(Key.ECC_QX, new ByteString("18877740186ea40e51932bccecd38d971caaf07a9f26c4d50a8f32bce3b6a667962307fe8d66e3a5", HEX));
+	cipherPP.setComponent(Key.ECC_QY, new ByteString("601b614fe272546c41e2efef64353b6f40729df4d7321fffdd026a58d2c473c185b5150870e7a319", HEX));
 
 	// Point 3
 	var pubKeyPI = new Key();
@@ -492,6 +271,7 @@ PCASimulation.prototype.createFileSystem = function() {
 	pubKeyPP.setComponent(Key.ECC_QX, new ByteString("4c89ed2eb8fe5753b6832aeee93224fac1e6cdd854b6d98c2fb176915d0581ac1d9f1c0fc9ce9ca4", HEX));
 	pubKeyPP.setComponent(Key.ECC_QY, new ByteString("9d7e437bfafc10cd6bd5f6afd2e5f58bb4c8456caf65efb62336a3d75ce3f02d22da178032fab50b", HEX));
 
+
     var pip = new PolymorphicObject(b, cipherPI, cipherPP, pubKeyPI, pubKeyPP);
 
     var dFPCA = new DF(FCP.newDF(null, new ByteString("A0 00 00 07 73 50 43 41", HEX)));
@@ -499,9 +279,6 @@ PCASimulation.prototype.createFileSystem = function() {
 
 	dFPCA.addMeta("accessController", new PCAAccessController());
 
-	this.mf.add(dFePass);
-	this.mf.add(dFeID);
-	this.mf.add(dFeSign);
     this.mf.add(dFPCA);
 
 	print(this.mf.dump(""));

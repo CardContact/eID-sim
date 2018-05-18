@@ -89,6 +89,13 @@ PolymorphicObject.prototype.getType = function() {
 
 
 
+/**
+ * Get the Dynamic Authentication Data object containing
+ * a randomized Polymorphic Object.
+ * 
+ * @param {ByteString} oid the Cryptographic mechanism reference
+ * @type ByteString
+ */
 PolymorphicObject.prototype.getData = function(oid) {
 	var retrievalType = PolymorphicObject.getRetrievalType(oid);
 	var isCompressed = PolymorphicObject.isCompressed(oid);
@@ -111,8 +118,12 @@ PolymorphicObject.prototype.getData = function(oid) {
 		seq.add(new ASN1(0x82, this.getEncodedECPoint(isCompressed, this.cipherPP)));
 	}
 	if (!isReduced) {
-		seq.add(new ASN1(0x83, this.getEncodedECPoint(isCompressed, this.pubKeyPI)));
-		seq.add(new ASN1(0x84, this.getEncodedECPoint(isCompressed, this.pubKeyPP)));
+		if (retrievalType == PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL || retrievalType == PolymorphicObject.RANDOMIZED_PI_RETRIEVAL) {
+			seq.add(new ASN1(0x83, this.getEncodedECPoint(isCompressed, this.pubKeyPI)));
+		}
+		if (retrievalType == PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL || retrievalType == PolymorphicObject.RANDOMIZED_PP_RETRIEVAL) {
+			seq.add(new ASN1(0x84, this.getEncodedECPoint(isCompressed, this.pubKeyPP)));
+		}
 	}
 
 	seq.add(new ASN1(0x85, this.schemeVersion));
@@ -132,6 +143,13 @@ PolymorphicObject.prototype.getData = function(oid) {
 
 
 
+/**
+ * Get a ByteString containing the encoded EC Point
+ * 
+ * @param{Boolean} compress true if compressed encoding (only x coordinates of the EC Point) false otherwise
+ * @param{Key} ecPoint the EC Point
+ * @type ByteString
+ */
 PolymorphicObject.prototype.getEncodedECPoint = function(compress, ecPoint) {
 	if (compress) {
 		var enc = new ByteString("02", HEX);
@@ -147,6 +165,11 @@ PolymorphicObject.prototype.getEncodedECPoint = function(compress, ecPoint) {
 
 
 
+/**
+ * Perform randomisation
+ * 
+ * @param{Number} type the type specifing which EC Points will be randomised. Must be one of  PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL, PolymorphicObject.RANDOMIZED_PP_RETRIEVAL or PolymorphicObject.RANDOMIZED_PI_RETRIEVAL
+ */
 PolymorphicObject.prototype.randomise = function(type) {
 	if (type != PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL && type != PolymorphicObject.RANDOMIZED_PI_RETRIEVAL && type != PolymorphicObject.RANDOMIZED_PP_RETRIEVAL) {
 		throw new GPError("CommandInterpreter", GPError.INVALID_DATA, APDU.SW_CONDOFUSENOTSAT, "Randomisation Type must be either PIP, PI or PP");

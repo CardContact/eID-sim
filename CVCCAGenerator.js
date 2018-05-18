@@ -320,6 +320,7 @@ CVCCAGenerator.setup = function() {
 				new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
 				new ASN1(0x53, new ByteString("01", HEX))
 			);
+	policy.extensions = [ authorizationExtension ];
 
 	g.createTerminal("/UTATCVCA/UTATDVCANO/UTTERMPCAPP", policy);
 
@@ -327,6 +328,7 @@ CVCCAGenerator.setup = function() {
 				new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
 				new ASN1(0x53, new ByteString("02", HEX))
 			);
+	policy.extensions = [ authorizationExtension ];
 
 	g.createTerminal("/UTATCVCA/UTATDVCANO/UTTERMPCAPI", policy);
 }

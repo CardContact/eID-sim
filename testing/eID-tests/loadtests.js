@@ -43,9 +43,7 @@ param["MRZ"] =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
 		"6408125<1010318D<<<<<<<<<<<<<6" +
 		"MUSTERMANN<<ERIKA<<<<<<<<<<<<<";
 
-param["PIN"] = "55555";
-
-var certstorepath = GPSystem.mapFilename("../cvc", GPSystem.CWD);
+var certstorepath = GPSystem.mapFilename("../../cvc", GPSystem.CWD);
 param["certstore"] = new CVCertificateStore(certstorepath);
 param["isrootpath"] = "/UTISCVCA";
 param["atrootpath"] = "/UTATCVCA";
@@ -54,13 +52,9 @@ param["isodcertpath"] = param["isrootpath"] + "/UTISDVCAOD/UTTERM";		// Official
 param["isofcertpath"] = param["isrootpath"] + "/UTISDVCAOF/UTTERM";		// Foreign Inspection System
 param["atodcertpath"] = param["atrootpath"] + "/UTATDVCAOD/UTTERM";		// Official Domestic Authentication Terminal
 param["atnocertpath"] = param["atrootpath"] + "/UTATDVCANO/UTTERM";		// Non-official Domestic Authentication Terminal
-
-param["pcapipcertpath"] = param["atrootpath"] + "/UTATDVCANO/UTTERMPCAPIP";		// Non-official Domestic Authentication Terminal with PIP authorization
-
 param["stabcertpath"] = param["strootpath"] + "/UTSTDVCAAB/UTTERM";		// Accreditation Body Signature Terminal
 param["stcpcertpath"] = param["strootpath"] + "/UTSTDVCACP/UTTERM";		// Certificate Service Provider Signature Terminal
 
-param["PCAAID"] = new ByteString("A0 00 00 07 73 50 43 41", HEX);
 
 
 /**
@@ -88,7 +82,6 @@ testRunner.addTestGroupFromXML("tg_StandardInspectionProcedureWithSAC.xml", para
 testRunner.addTestGroupFromXML("tg_AdvancedInspectionProcedureWithBAC.xml", param);
 testRunner.addTestGroupFromXML("tg_AdvancedInspectionProcedureWithSAC.xml", param);
 testRunner.addTestGroupFromXML("tg_GeneralAuthenticationProcedure.xml", param);
-testRunner.addTestGroupFromXML("tg_PCA.xml", param);
 
 print("Test-Suite loaded...");
 print("Right-click on the tests on the left.");

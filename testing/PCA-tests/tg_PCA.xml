@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="doctg.xsl" ?>
+<testgroup 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://www.openscdp.org/schema/testframework-1.0.xsd"
+	id="tg_PCA" arrayElement="testcase,function" arrayIndex="id,Name">
+	<name>PCA</name>
+	<description>
+		<p>This group of tests verify the implementation of the PCA</p>
+	</description>
+	<reference>
+		<p>ISO 7816-4</p>
+	</reference>
+
+<!-- Initializing the test group environment -->
+<!-- Enable this if you want your own constructor
+	<constructor Param="name, parameter">
+		<Script><![CDATA[
+	
+	// Call constructor of super class TestGroup and define name of test group
+	TestGroup.call(this, name, parameter);
+	
+		]]></Script>
+	</constructor>
+-->
+
+	
+<!-- Setup method called before each test case is executed -->
+	<setup>
+		<Script><![CDATA[
+
+		this.card = new Card(_scsh3.reader);
+		this.card.reset(Card.RESET_COLD);
+
+		]]></Script>
+	</setup>
+
+
+	
+<!-- Teardown method called after each test case is executed -->
+	<teardown>
+		<Script><![CDATA[
+		
+//	print("TestGroup.teardown() called.");
+
+		]]></Script>
+	</teardown>
+
+
+
+<!-- Each test case must be declared with an id that starts with a 3 digit number -->
+
+	<testcase id="001">
+		<name>Retrieve PIP-reduced-compressed</name>
+		<description>
+			<p>Retrieve Randomized PIP using OID id-PCA-PIP-reduced-compressed</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var eac = newEAC20(this.parameter.crypto, this.card);
+
+        print("Reading EF.CardAccess");
+		eac.readCardAccess();
+
+		var chat = new ASN1(0x7F4C, 
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-AT", OID)),
+						new ASN1(0x53, new ByteString("0000000000", HEX))
+					);
+
+		var pwd = new ByteString(this.parameter.PIN, ASCII);
+		print("Performing PACE with chat...");
+		print(chat);
+		var certExt = 
+			new ASN1(0x65, 
+					new ASN1(0x73,
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+						new ASN1(0x53, new ByteString("03", HEX))
+					)
+			);
+		
+		eac.performPACE(0, EAC20.ID_PIN, pwd, chat, certExt);
+
+		var certstore = this.parameter.certstore;
+		var takeypath = this.parameter.pcapipcertpath;
+		var chr = certstore.getCurrentCHR(takeypath);
+		if (chr == null) {
+			throw new GPError("EAC", GPError.OBJECT_NOT_FOUND, 0, "Could not determine current terminal key for " + takeypath);
+		}
+
+		var fromcar = eac.getTrustAnchorCAR();
+		var cvcchain = certstore.getCertificateChain(takeypath, chr, fromcar);
+		this.assertTrue(cvcchain, "Could not build certificate chain from " + fromcar + " to " + chr);
+
+		print("Verify certificate chain");
+		eac.verifyCertificateChain(cvcchain);
+
+		// Get key for terminal certificate
+		var termkey = certstore.getPrivateKey(takeypath, chr);
+
+		print("Prepare for chip authentication");
+		eac.prepareChipAuthentication(eac.getCAKeyId());
+
+		print("Perform terminal authentication");
+		eac.performTerminalAuthentication(termkey);
+		
+		print("Reading EF.CardSecurity");
+		eac.readCardSecurity();
+
+		print("Performing chip authentication");
+		assert(eac.performChipAuthentication(), "Chip authentication failed");
+
+		// Select PCA 
+		eac.selectADF(this.parameter.PCAAID);
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-reduced-compressed", OID));
+		eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var res = eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [0x9000]);
+		var dad = new ASN1(res);
+		print(dad);
+
+		var p = dad.get(1).find(0x80).value;
+		this.assertTrue(p.length == 41, "EC Point 0 expected");
+		print("Point 0")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x81).value;
+		this.assertTrue(p.length == 41, "EC Point 1 expected");
+		print("Point 1")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x82).value;
+		this.assertTrue(p.length == 41, "EC Point 2 expected");
+		print("Point 2")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x83);
+		this.assertTrue(p == null, "EC Point 3 not expected");
+
+		var p = dad.get(1).find(0x84);
+		this.assertTrue(p== null, "EC Point 4 not expected");
+
+		var type = dad.get(1).find(0x8A);
+		this.assertTrue(type.length == 1, "Type expected");
+		]]></Script>
+	</testcase>
+
+
+
+	<testcase id="002">
+		<name>Retrieve PIP</name>
+		<description>
+			<p>Retrieve Randomized PIP using OID id-PCA-PIP</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var eac = newEAC20(this.parameter.crypto, this.card);
+
+        print("Reading EF.CardAccess");
+		eac.readCardAccess();
+
+		var chat = new ASN1(0x7F4C, 
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-AT", OID)),
+						new ASN1(0x53, new ByteString("0000000000", HEX))
+					);
+
+		var pwd = new ByteString(this.parameter.PIN, ASCII);
+		print("Performing PACE with chat...");
+		print(chat);
+		var certExt = 
+			new ASN1(0x65, 
+					new ASN1(0x73,
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+						new ASN1(0x53, new ByteString("03", HEX))
+					)
+			);
+		
+		eac.performPACE(0, EAC20.ID_PIN, pwd, chat, certExt);
+
+		var certstore = this.parameter.certstore;
+		var takeypath = this.parameter.pcapipcertpath;
+		var chr = certstore.getCurrentCHR(takeypath);
+		if (chr == null) {
+			throw new GPError("EAC", GPError.OBJECT_NOT_FOUND, 0, "Could not determine current terminal key for " + takeypath);
+		}
+
+		var fromcar = eac.getTrustAnchorCAR();
+		var cvcchain = certstore.getCertificateChain(takeypath, chr, fromcar);
+		this.assertTrue(cvcchain, "Could not build certificate chain from " + fromcar + " to " + chr);
+
+		print("Verify certificate chain");
+		eac.verifyCertificateChain(cvcchain);
+
+		// Get key for terminal certificate
+		var termkey = certstore.getPrivateKey(takeypath, chr);
+
+		print("Prepare for chip authentication");
+		eac.prepareChipAuthentication(eac.getCAKeyId());
+
+		print("Perform terminal authentication");
+		eac.performTerminalAuthentication(termkey);
+		
+		print("Reading EF.CardSecurity");
+		eac.readCardSecurity();
+
+		print("Performing chip authentication");
+		assert(eac.performChipAuthentication(), "Chip authentication failed");
+
+		// Select PCA 
+		eac.selectADF(this.parameter.PCAAID);
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP", OID));
+		eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var res = eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [0x9000]);
+		var dad = new ASN1(res);
+		print(dad);
+
+		var p = dad.get(1).find(0x80).value;
+		this.assertTrue(p.length == 81, "EC Point 0 expected");
+		print("Point 0")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x81).value;
+		this.assertTrue(p.length == 81, "EC Point 1 expected");
+		print("Point 1")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x82).value;
+		this.assertTrue(p.length == 81, "EC Point 2 expected");
+		print("Point 2")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x83).value;
+		this.assertTrue(p.length == 81, "EC Point 3 expected");
+		print("Point 3")
+		printEncodedPoint(p);
+
+		var p = dad.get(1).find(0x84).value;
+		this.assertTrue(p.length == 81, "EC Point 4 expected");
+		print("Point 4")
+		printEncodedPoint(p);
+
+		var type = dad.get(1).find(0x8A);
+		this.assertTrue(type.length == 1, "Type expected");
+		]]></Script>
+	</testcase>
+
+
+
+	<testcase id="003">
+		<name>Reset Security Status</name>
+		<description>
+			<p>Test if the security status of the PACE PIN will be reset after performing a successful PIP retrieval.</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var eac = newEAC20(this.parameter.crypto, this.card);
+
+        print("Reading EF.CardAccess");
+		eac.readCardAccess();
+
+		var chat = new ASN1(0x7F4C, 
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-AT", OID)),
+						new ASN1(0x53, new ByteString("0000000000", HEX))
+					);
+
+		var pwd = new ByteString(this.parameter.PIN, ASCII);
+		print("Performing PACE with chat...");
+		print(chat);
+		var certExt = 
+			new ASN1(0x65, 
+					new ASN1(0x73,
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+						new ASN1(0x53, new ByteString("03", HEX))
+					)
+			);
+		
+		eac.performPACE(0, EAC20.ID_PIN, pwd, chat, certExt);
+
+		var certstore = this.parameter.certstore;
+		var takeypath = this.parameter.pcapipcertpath;
+		var chr = certstore.getCurrentCHR(takeypath);
+		if (chr == null) {
+			throw new GPError("EAC", GPError.OBJECT_NOT_FOUND, 0, "Could not determine current terminal key for " + takeypath);
+		}
+
+		var fromcar = eac.getTrustAnchorCAR();
+		var cvcchain = certstore.getCertificateChain(takeypath, chr, fromcar);
+		this.assertTrue(cvcchain, "Could not build certificate chain from " + fromcar + " to " + chr);
+
+		print("Verify certificate chain");
+		eac.verifyCertificateChain(cvcchain);
+
+		// Get key for terminal certificate
+		var termkey = certstore.getPrivateKey(takeypath, chr);
+
+		print("Prepare for chip authentication");
+		eac.prepareChipAuthentication(eac.getCAKeyId());
+
+		print("Perform terminal authentication");
+		eac.performTerminalAuthentication(termkey);
+		
+		print("Reading EF.CardSecurity");
+		eac.readCardSecurity();
+
+		print("Performing chip authentication");
+		assert(eac.performChipAuthentication(), "Chip authentication failed");
+
+		// Select PCA 
+		eac.selectADF(this.parameter.PCAAID);
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-reduced-compressed", OID));
+		eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var res = eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [0x9000]);
+		this.assertTrue(res.length > 0, "Dynamic Authentication Data expected");
+		
+		// Security State must be reset
+		// A second PIP retrieval isn't authorized
+		var res = eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [0x6982]);
+		this.assertTrue(res.length == 0, "Empty response expected");
+		]]></Script>
+	</testcase>
+
+
+
+	<testcase id="004">
+		<name>Terminal with PIP Authorization</name>
+		<description>
+			<p>Perform all PCA Retrieval combinations. The terminal certificate has the PIP authorization bits set so every PCA OID must be accepted.</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var param = {
+			crypto: this.parameter.crypto,
+			card: this.card,
+			pwd: new ByteString(this.parameter.PIN, ASCII),
+			certstore: this.parameter.certstore,
+			aid: this.parameter.PCAAID,
+
+			authorizationExtension: new ByteString("03", HEX),
+			takeypath: this.parameter.pcapipcertpath,
+			generalAuthenticateStatus: [
+				0x9000, // id-PCA-PIP
+				0x9000, // id-PCA-PIP-compressed
+				0x9000, // id-PCA-PIP-reduced-compressed
+				0x9000, // id-PCA-PIP-reduced-uncompressed
+
+				0x9000, // id-PCA-PP
+				0x9000, // id-PCA-PP-compressed
+				0x9000, // id-PCA-PP-reduced-compressed
+				0x9000, // id-PCA-PP-reduced-uncompressed
+
+				0x9000, // id-PCA-PI
+				0x9000, // id-PCA-PI-compressed
+				0x9000, // id-PCA-PI-reduced-compressed
+				0x9000, // id-PCA-PI-reduced-uncompressed
+			]
+			
+		};
+		this.runTestProcedure("tp_randomization", param);
+
+		//param.takeypath = this.parameter.pcapicertpath;
+		//this.runTestProcedure("tp_randomization", param);
+		]]></Script>
+	</testcase>
+
+
+
+	<testcase id="005">
+		<name>Terminal with PP Authorization</name>
+		<description>
+			<p>Perform all PCA Retrieval combinations. The terminal certificate has the PP authorization bit set. The card must refuse the PCA retrieval if the terminal is not authorized (PIP, PI).</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var ok = 0x9000; // Process completed
+		var secNotSat = 0x6982; // Security status not satisfied
+
+		var param = {
+			crypto: this.parameter.crypto,
+			card: this.card,
+			pwd: new ByteString(this.parameter.PIN, ASCII),
+			certstore: this.parameter.certstore,
+			aid: this.parameter.PCAAID,
+
+			authorizationExtension: new ByteString("01", HEX),
+			takeypath: this.parameter.pcappcertpath,
+			generalAuthenticateStatus: [
+				secNotSat, // id-PCA-PIP
+				secNotSat, // id-PCA-PIP-compressed
+				secNotSat, // id-PCA-PIP-reduced-compressed
+				secNotSat, // id-PCA-PIP-reduced-uncompressed
+
+				ok, // id-PCA-PP
+				ok, // id-PCA-PP-compressed
+				ok, // id-PCA-PP-reduced-compressed
+				ok, // id-PCA-PP-reduced-uncompressed
+
+				secNotSat, // id-PCA-PI
+				secNotSat, // id-PCA-PI-compressed
+				secNotSat, // id-PCA-PI-reduced-compressed
+				secNotSat, // id-PCA-PI-reduced-uncompressed
+			]
+			
+		};
+		this.runTestProcedure("tp_randomization", param);
+		]]></Script>
+	</testcase>
+
+
+
+	<testcase id="006">
+		<name>Terminal with PI Authorization</name>
+		<description>
+			<p>Perform all PCA Retrieval combinations. The terminal certificate has the PI authorization bit set. The card must refuse the PCA retrieval if the terminal is not authorized (PIP, PP).</p>
+		</description>
+		<requirement>
+			<p></p>
+		</requirement>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<reference>
+			<p></p>
+		</reference>
+		<Script><![CDATA[
+
+		var ok = 0x9000; // Process completed
+		var secNotSat = 0x6982; // Security status not satisfied
+
+		var param = {
+			crypto: this.parameter.crypto,
+			card: this.card,
+			pwd: new ByteString(this.parameter.PIN, ASCII),
+			certstore: this.parameter.certstore,
+			aid: this.parameter.PCAAID,
+
+			authorizationExtension: new ByteString("02", HEX),
+			takeypath: this.parameter.pcapicertpath,
+			generalAuthenticateStatus: [
+				secNotSat, // id-PCA-PIP
+				secNotSat, // id-PCA-PIP-compressed
+				secNotSat, // id-PCA-PIP-reduced-compressed
+				secNotSat, // id-PCA-PIP-reduced-uncompressed
+
+				secNotSat, // id-PCA-PP
+				secNotSat, // id-PCA-PP-compressed
+				secNotSat, // id-PCA-PP-reduced-compressed
+				secNotSat, // id-PCA-PP-reduced-uncompressed
+
+				ok, // id-PCA-PI
+				ok, // id-PCA-PI-compressed
+				ok, // id-PCA-PI-reduced-compressed
+				ok, // id-PCA-PI-reduced-uncompressed
+			]
+			
+		};
+		this.runTestProcedure("tp_randomization", param);
+		]]></Script>
+	</testcase>
+</testgroup>

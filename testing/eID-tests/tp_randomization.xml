@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="doctp.xsl" ?>
+<testprocedure
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://www.openscdp.org/schema/testframework-1.0.xsd"
+	id="tp_randomization" arrayElement="teststep" arrayIndex="id">
+	<name>Perform PCA Randomization</name>
+	<description>
+	</description>
+	<reference>
+		<p></p>
+	</reference>
+
+<!-- Initializing the test procedure environment -->
+
+	<constructor Param="name, testgroup, parameter">
+		<Script><![CDATA[
+
+			// Call constructor of super class TestProcedure and define name of test procedure
+			TestProcedure.call(this, name, testgroup, parameter);
+
+		]]></Script>
+	</constructor>
+
+
+<!-- Setup method called before the test procedure is executed -->
+	<setup>
+		<Script><![CDATA[
+		this.parameter.card.reset(Card.RESET_COLD);
+
+		this.eac = newEAC20(this.parameter.crypto, this.parameter.card);
+
+		// Perform PACE
+		this.eac.readCardAccess();
+		var pwd = this.parameter.pwd;
+		var chat = new ASN1(0x7F4C, 
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-AT", OID)),
+						new ASN1(0x53, new ByteString("0000000000", HEX))
+					);
+		var certExt = 
+			new ASN1(0x65, 
+					new ASN1(0x73,
+						new ASN1(ASN1.OBJECT_IDENTIFIER, new ByteString("id-PCA-AT", OID)),
+						new ASN1(0x53, this.parameter.authorizationExtension)
+					)
+			);
+		this.eac.performPACE(0, EAC20.ID_PIN, pwd, chat, certExt);
+
+		// Verify certificate chain
+		var certstore = this.parameter.certstore;
+		var takeypath = this.parameter.takeypath;
+		var chr = certstore.getCurrentCHR(takeypath);
+		if (chr == null) {
+			throw new GPError("EAC", GPError.OBJECT_NOT_FOUND, 0, "Could not determine current terminal key for " + takeypath);
+		}
+		var fromcar = this.eac.getTrustAnchorCAR();
+		var cvcchain = certstore.getCertificateChain(takeypath, chr, fromcar);
+		this.assertTrue(cvcchain, "Could not build certificate chain from " + fromcar + " to " + chr);
+		this.eac.verifyCertificateChain(cvcchain);
+
+		// Perform terminal authentication
+		var termkey = certstore.getPrivateKey(takeypath, chr);
+		this.eac.prepareChipAuthentication(this.eac.getCAKeyId());
+		this.eac.performTerminalAuthentication(termkey);
+
+		// Performing chip authentication
+		this.eac.readCardSecurity();
+		assert(this.eac.performChipAuthentication(), "Chip authentication failed");
+
+		// Select PCA 
+		this.eac.selectADF(this.parameter.aid);
+		]]></Script>
+	</setup>
+
+
+<!-- Teardown method called after the test procedure is executed -->
+	<teardown>
+		<Script><![CDATA[
+
+		]]></Script>
+	</teardown>
+
+
+<!-- Each test step must be declared with an id that starts with a 3 digit number -->
+	<teststep id="001-id-PCA-PIP">
+		<name>PIP</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[0];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 81, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 81, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p.length == 81, "EC Point 3 expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p.length == 81, "EC Point 4 expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="002-id-PCA-PIP-compressed">
+		<name>PIP-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[1];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 41, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 41, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p.length == 41, "EC Point 3 expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p.length == 41, "EC Point 4 expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="003-id-PCA-PIP-reduced-compressed">
+		<name>PIP-reduced-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-reduced-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[2];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 41, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 41, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="004-id-PCA-PIP-reduced-uncompressed">
+		<name>PIP-reduced-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PIP-reduced-uncompressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[3];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 81, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 81, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="005-id-PCA-PP">
+		<name>PP</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PP", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[4];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p == null, "EC Point 1 not expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 81, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p.length == 81, "EC Point 4 expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="006-id-PCA-PP-compressed">
+		<name>PP-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PP-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[5];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p == null, "EC Point 1 not expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 41, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p.length == 41, "EC Point 4 expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="007-id-PCA-PP-reduced-compressed">
+		<name>PP-reduced-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PP-reduced-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[6];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p == null, "EC Point 1 not expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 41, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="008-id-PCA-PP-reduced-uncompressed">
+		<name>PP-reduced-uncompressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PP-reduced-uncompressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[7];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p == null, "EC Point 1 not expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p.length == 81, "EC Point 2 expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p == null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type.length == 1, "Type expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="009-id-PCA-PI">
+		<name>PI</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PI", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[8];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 81, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p== null, "EC Point 2 not expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p.length == 81, "EC Point 3 expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type == null, "Type not expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="010-id-PCA-PI-compressed">
+		<name>PI-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PI-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[9];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 41, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p== null, "EC Point 2 not expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p.length == 41, "EC Point 3 expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type == null, "Type not expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="011-id-PCA-PI-reduced-compressed">
+		<name>PI-reduced-compressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PI-reduced-compressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[10];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 41, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 41, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p== null, "EC Point 2 not expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p== null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type == null, "Type not expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+	<teststep id="012-id-PCA-PI-reduced-uncompressed">
+		<name>PI-reduced-uncompressed</name>
+		<description>
+		</description>
+		<requirement>
+		</requirement>
+		<reference>
+			<p>FR_Smart_Card_HSM</p>
+		</reference>
+		<procedures arrayElement="procedure" arrayIndex="#">
+			<procedure id="tp_randomization"/>
+		</procedures>
+		<Script><![CDATA[
+
+		// Manage SE
+		var cmr = new ASN1(0x80, new ByteString("id-PCA-PI-reduced-uncompressed", OID));
+		this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x22, 0x41, 0xA4, cmr.getBytes(), [0x9000]);
+
+		// General Authenticate
+		var sw = this.parameter.generalAuthenticateStatus[11];
+		var res = this.eac.card.sendSecMsgApdu(Card.ALL, 0x00, 0x86, 0x00, 0x00, new ByteString("7C 00", HEX), [sw]);
+
+		if (this.eac.card.SW == 0x9000) {
+			var dad = new ASN1(res);
+
+			var p = dad.get(1).find(0x80);
+			this.assertTrue(p.length == 81, "EC Point 0 expected");
+
+			var p = dad.get(1).find(0x81);
+			this.assertTrue(p.length == 81, "EC Point 1 expected");
+
+			var p = dad.get(1).find(0x82);
+			this.assertTrue(p== null, "EC Point 2 not expected");
+
+			var p = dad.get(1).find(0x83);
+			this.assertTrue(p== null, "EC Point 3 not expected");
+
+			var p = dad.get(1).find(0x84);
+			this.assertTrue(p== null, "EC Point 4 not expected");
+
+			var type = dad.get(1).find(0x8A);
+			this.assertTrue(type == null, "Type not expected");
+		} else {
+			this.assertTrue(res.length == 0, "Empty response expected");
+		}
+
+		]]></Script>
+	</teststep>
+
+
+
+</testprocedure>

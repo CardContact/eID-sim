@@ -26,12 +26,8 @@
 
 
 
-eIDCommandInterpreter						= require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
 
 MFAccessController							= require('eID/MFAccessController').MFAccessController;
-ePassAccessController						= require('eID/ePassAccessController').ePassAccessController;
-eIDAccessController							= require('eID/eIDAccessController').eIDAccessController;
-eSignAccessController						= require('eID/eSignAccessController').eSignAccessController;
 
 PolymorphicObject							= require('pca/PolymorphicObject').PolymorphicObject;
 PolymorphicInfo								= require('pca/PolymorphicInfo').PolymorphicInfo;
@@ -41,26 +37,18 @@ PCACommandInterpreter						= require('pca/PCACommandInterpreter').PCACommandInte
 APDU										= require('cardsim/APDU').APDU;
 AuthenticationObject						= require('cardsim/AuthenticationObject').AuthenticationObject;
 TrustAnchor									= require('cardsim/TrustAnchor').TrustAnchor;
-SignatureKey								= require('cardsim/SignatureKey').SignatureKey;
 FileSelector								= require('cardsim/FileSelector').FileSelector;
 FCP											= require('cardsim/FCP').FCP;
 TransparentEF								= require('cardsim/TransparentEF').TransparentEF;
-FSNode										= require('cardsim/FSNode').FSNode;
 DF											= require('cardsim/DF').DF;
-SecureChannel								= require('cardsim/SecureChannel').SecureChannel;
 
 File										= require('scsh/file/File').File;
 EAC20										= require('scsh/eac/EAC20').EAC20;
 CVC											= require('scsh/eac/CVC').CVC;
 PACEInfo									= require('scsh/eac/PACE').PACEInfo;
-PACE										= require('scsh/eac/PACE').PACE;
 ChipAuthenticationInfo						= require('scsh/eac/ChipAuthentication').ChipAuthenticationInfo;
 ChipAuthenticationDomainParameterInfo		= require('scsh/eac/ChipAuthentication').ChipAuthenticationDomainParameterInfo;
 ChipAuthenticationPublicKeyInfo				= require('scsh/eac/ChipAuthentication').ChipAuthenticationPublicKeyInfo;
-ChipAuthentication							= require('scsh/eac/ChipAuthentication').ChipAuthentication;
-RestrictedIdentificationDomainParameterInfo	= require('scsh/eac/RestrictedIdentification').RestrictedIdentificationDomainParameterInfo;
-RestrictedIdentificationInfo				= require('scsh/eac/RestrictedIdentification').RestrictedIdentificationInfo;
-RestrictedIdentification					= require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
 
 var mrz =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
 		"6408125<1010318D<<<<<<<<<<<<<6" +

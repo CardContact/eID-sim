@@ -29,11 +29,8 @@
 load("tools/eccutils.js");
 
 eIDCommandInterpreter		= require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
-PCAAccessController			= require('pca/PCAAccessController').PCAAccessController;
 PolymorphicObject			= require('pca/PolymorphicObject').PolymorphicObject;
-PACE						= require('scsh/eac/PACE').PACE;
 APDU						= require('cardsim/APDU').APDU;
-PublicKeyReference			= require('scsh/eac/PublicKeyReference').PublicKeyReference;
 
 
 

@@ -26,10 +26,12 @@
 
 load("tools/eccutils.js");
 
-CommandInterpreter          = require('cardsim/CommandInterpreter').CommandInterpreter;
-PACE                        = require('scsh/eac/PACE').PACE;
-APDU                        = require('cardsim/APDU').APDU;
-PublicKeyReference          = require('scsh/eac/PublicKeyReference').PublicKeyReference;
+CommandInterpreter			= require('cardsim/CommandInterpreter').CommandInterpreter;
+PACE						= require('scsh/eac/PACE').PACE;
+APDU						= require('cardsim/APDU').APDU;
+PublicKeyReference			= require('scsh/eac/PublicKeyReference').PublicKeyReference;
+SecureChannel				= require('cardsim/SecureChannel').SecureChannel;
+ChipAuthentication			= require('scsh/eac/ChipAuthentication').ChipAuthentication;
 
 /**
  * Create a command interpreter

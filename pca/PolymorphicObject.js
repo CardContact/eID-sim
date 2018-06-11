@@ -58,7 +58,7 @@ function PolymorphicObject(b, cipherPI, cipherPP, pubKeyPI, pubKeyPP) {
 	this.creator = new ByteString("00 00 00 04 00 32 14 34 50 01", HEX); // BCD encoded OIN
 	this.recipient = new ByteString("00 00 00 01 80 47 70 69 40 00", HEX); // BCD encoded OIN
 	this.recipientKeySetVersion = new ByteString("01", HEX);
-	this.type = new ByteString("42", HEX);
+	this.type = new ByteString("D", ASCII);
 	/*
 	 * Octet	Description
 	 * 7		Century if year >= 2050

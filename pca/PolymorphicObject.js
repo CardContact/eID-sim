@@ -152,7 +152,12 @@ PolymorphicObject.prototype.getData = function(oid) {
  */
 PolymorphicObject.prototype.getEncodedECPoint = function(compress, ecPoint) {
 	if (compress) {
-		var enc = new ByteString("02", HEX);
+		var qy = ecPoint.getComponent(Key.ECC_QY);
+		if ((qy.byteAt(qy.length -1) & 0x1) == 0x1) {
+			var enc = new ByteString("03", HEX);
+		} else {
+			var enc = new ByteString("02", HEX);
+		}
 		enc = enc.concat(ecPoint.getComponent(Key.ECC_QX));
 	} else {
 		var enc = new ByteString("04", HEX);
@@ -177,15 +182,17 @@ PolymorphicObject.prototype.randomise = function(type) {
 	var crypto = new Crypto();
 	var random = crypto.generateRandom(40);
 
+	// Randomise Blinding
+	// g * random + b
 	crypto.deriveKey(this.generator, Crypto.EC_MULTIPLY_ADD, random, this.b)
 
-	if (type == PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL || type == PolymorphicObject.RANDOMIZED_PI_RETRIEVAL) {
-		crypto.deriveKey(this.pubKeyPI, Crypto.EC_MULTIPLY_ADD, random, this.cipherPI)
-	}
+	// Randomise PI Cipher
+	// pubKeyPi * random + cipherPI
+	crypto.deriveKey(this.pubKeyPI, Crypto.EC_MULTIPLY_ADD, random, this.cipherPI)
 
-	if (type == PolymorphicObject.RANDOMIZED_PIP_RETRIEVAL || type == PolymorphicObject.RANDOMIZED_PP_RETRIEVAL) {
-		crypto.deriveKey(this.pubKeyPP, Crypto.EC_MULTIPLY_ADD, random, this.cipherPP)
-	}
+	// Randomise PP Cipher
+	// pubKeyPP * random + cipherPP
+	crypto.deriveKey(this.pubKeyPP, Crypto.EC_MULTIPLY_ADD, random, this.cipherPP)
 }
 
 

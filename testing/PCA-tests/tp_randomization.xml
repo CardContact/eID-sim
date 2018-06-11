@@ -106,14 +106,16 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 81, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 81, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p.length == 81, "EC Point 3 expected");
@@ -155,14 +157,16 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 41, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 41, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p.length == 41, "EC Point 3 expected");
@@ -204,14 +208,16 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 41, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 41, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -253,14 +259,16 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 81, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 81, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -303,14 +311,15 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
 			var p = dad.get(1).find(0x81);
 			this.assertTrue(p == null, "EC Point 1 not expected");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 81, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -354,14 +363,15 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
 			var p = dad.get(1).find(0x81);
 			this.assertTrue(p == null, "EC Point 1 not expected");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 41, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -405,14 +415,15 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
 			var p = dad.get(1).find(0x81);
 			this.assertTrue(p == null, "EC Point 1 not expected");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 41, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -456,14 +467,15 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
 			var p = dad.get(1).find(0x81);
 			this.assertTrue(p == null, "EC Point 1 not expected");
 
-			var p = dad.get(1).find(0x82);
+			var p = dad.get(1).find(0x82).value;
 			this.assertTrue(p.length == 81, "EC Point 2 expected");
+			this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 			var p = dad.get(1).find(0x83);
 			this.assertTrue(p == null, "EC Point 3 not expected");
@@ -507,11 +519,12 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 81, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 			var p = dad.get(1).find(0x82);
 			this.assertTrue(p== null, "EC Point 2 not expected");
@@ -558,11 +571,12 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 41, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 			var p = dad.get(1).find(0x82);
 			this.assertTrue(p== null, "EC Point 2 not expected");
@@ -609,11 +623,12 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 41, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 41, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 41, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 			var p = dad.get(1).find(0x82);
 			this.assertTrue(p== null, "EC Point 2 not expected");
@@ -660,11 +675,12 @@
 		if (this.eac.card.SW == 0x9000) {
 			var dad = new ASN1(res);
 
-			var p = dad.get(1).find(0x80);
-			this.assertTrue(p.length == 81, "EC Point 0 expected");
+			var b = dad.get(1).find(0x80).value;
+			this.assertTrue(b.length == 81, "EC Point 0 expected");
 
-			var p = dad.get(1).find(0x81);
+			var p = dad.get(1).find(0x81).value;
 			this.assertTrue(p.length == 81, "EC Point 1 expected");
+			this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 			var p = dad.get(1).find(0x82);
 			this.assertTrue(p== null, "EC Point 2 not expected");

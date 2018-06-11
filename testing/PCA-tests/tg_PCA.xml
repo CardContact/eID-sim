@@ -127,20 +127,22 @@
 		var dad = new ASN1(res);
 		print(dad);
 
-		var p = dad.get(1).find(0x80).value;
-		this.assertTrue(p.length == 41, "EC Point 0 expected");
+		var b = dad.get(1).find(0x80).value;
+		this.assertTrue(b.length == 41, "EC Point 0 expected");
 		print("Point 0")
-		printEncodedPoint(p);
+		printEncodedPoint(b);
 
 		var p = dad.get(1).find(0x81).value;
 		this.assertTrue(p.length == 41, "EC Point 1 expected");
 		print("Point 1")
 		printEncodedPoint(p);
+		this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 		var p = dad.get(1).find(0x82).value;
 		this.assertTrue(p.length == 41, "EC Point 2 expected");
 		print("Point 2")
 		printEncodedPoint(p);
+		this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 		var p = dad.get(1).find(0x83);
 		this.assertTrue(p == null, "EC Point 3 not expected");
@@ -232,20 +234,22 @@
 		var dad = new ASN1(res);
 		print(dad);
 
-		var p = dad.get(1).find(0x80).value;
-		this.assertTrue(p.length == 81, "EC Point 0 expected");
+		var b = dad.get(1).find(0x80).value;
+		this.assertTrue(b.length == 81, "EC Point 0 expected");
 		print("Point 0")
-		printEncodedPoint(p);
+		printEncodedPoint(b);
 
 		var p = dad.get(1).find(0x81).value;
 		this.assertTrue(p.length == 81, "EC Point 1 expected");
 		print("Point 1")
 		printEncodedPoint(p);
+		this.assertTrue(verifyPI(b, p), "Verification of PI failed");
 
 		var p = dad.get(1).find(0x82).value;
 		this.assertTrue(p.length == 81, "EC Point 2 expected");
 		print("Point 2")
 		printEncodedPoint(p);
+		this.assertTrue(verifyPP(b, p), "Verification of PP failed");
 
 		var p = dad.get(1).find(0x83).value;
 		this.assertTrue(p.length == 81, "EC Point 3 expected");

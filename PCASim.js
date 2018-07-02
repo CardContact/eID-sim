@@ -230,35 +230,19 @@ PCASimulation.prototype.createFileSystem = function() {
 	this.mf.addMeta("efCVCA", efCVCA);
 
 	// Point 0
-	var b = new Key();
-	b.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	b.setComponent(Key.ECC_QX, new ByteString("26e848758cd601a62c3c96f29001259e4560763f9e79bf9e35e3b69103e4d442b4e9d4a8de208c45", HEX));
-	b.setComponent(Key.ECC_QY, new ByteString("99caee26203cec3ff6ecdedd2d71bc6871d3a41da4d4d11885bb0b4c4bb05866eac2d9a6553fdf49", HEX));
+	var b = new Key("kp_pip_blinding.xml");
 
 	// Point 1
-	var cipherPI = new Key();
-	cipherPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	cipherPI.setComponent(Key.ECC_QX, new ByteString("474fb982ab20899d3633ae479b6983c309350f55aaeb3cf7d22eaf81d89488859da4bd3b03f3b0e2", HEX));
-	cipherPI.setComponent(Key.ECC_QY, new ByteString("a5954fc8036359c530c87c05f5699b194a95b98d5a22e1cbf0e576e2d449ebf828a07456903b556a", HEX));
+	var cipherPI = new Key("kp_pip_pi.xml");
 
 	// Point 2
-	var cipherPP = new Key();
-	cipherPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	cipherPP.setComponent(Key.ECC_QX, new ByteString("18877740186ea40e51932bccecd38d971caaf07a9f26c4d50a8f32bce3b6a667962307fe8d66e3a5", HEX));
-	cipherPP.setComponent(Key.ECC_QY, new ByteString("601b614fe272546c41e2efef64353b6f40729df4d7321fffdd026a58d2c473c185b5150870e7a319", HEX));
+	var cipherPP = new Key("kp_pip_pp.xml");
 
 	// Point 3
-	var pubKeyPI = new Key();
-	pubKeyPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	pubKeyPI.setComponent(Key.ECC_QX, new ByteString("9426cebf206de90b56c083f032b8f82b02501c4f7cddd72956525c539fc34a6766642998acd2ab2d", HEX));
-	pubKeyPI.setComponent(Key.ECC_QY, new ByteString("cd490dc6200a2346de929996a457cb336ce179686fc71c4fff04ff29618d639bff8da7b052de86b5", HEX));
+	var pubKeyPI = new Key("kp_pub_pip_pi.xml");
 
 	// Point 4
-	var pubKeyPP = new Key();
-	pubKeyPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-	pubKeyPP.setComponent(Key.ECC_QX, new ByteString("4c89ed2eb8fe5753b6832aeee93224fac1e6cdd854b6d98c2fb176915d0581ac1d9f1c0fc9ce9ca4", HEX));
-	pubKeyPP.setComponent(Key.ECC_QY, new ByteString("9d7e437bfafc10cd6bd5f6afd2e5f58bb4c8456caf65efb62336a3d75ce3f02d22da178032fab50b", HEX));
-
+	var pubKeyPP = new Key("kp_pub_pip_pp.xml");
 
     var pip = new PolymorphicObject(b, cipherPI, cipherPP, pubKeyPI, pubKeyPP);
 

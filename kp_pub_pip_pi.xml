@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gp:KeyProfile xmlns:gp="http://namespaces.globalplatform.org/systems-profiles/1.1.0" ErrataVersion="0" ProfileVersion="1.1.0" UniqueID="2B0601040181C31F100008">
+  <gp:Description>PuK_kp_pub_pip_pi ElGamal Public Key</gp:Description>
+  <gp:Revisions arrayElement="Revision" arrayIndex="#">
+    <gp:Revision By="www.smartcard-hsm.org" Date="2011-11-11" Digest="00000000" Time="00:00:00" Version="1.0.0"/>
+  </gp:Revisions>
+  <gp:KeyInfo Mode="TEST" Name="ECPublic" Size="256" SubType="EC" Type="PUBLIC"/>
+  <gp:Attribute Exportable="true" Importable="true" Sensitive="false"/>
+  <gp:Usage Decrypt="true" DecryptEncrypt="true" Derive="true" Encrypt="true" Sign="true" Unwrap="true" UnwrapWrap="true" Verify="true" Wrap="true"/>
+  <gp:Value Format="ECPUBLIC" arrayElement="Component" arrayIndex="#">
+    <gp:Component Encoding="HEX" Name="ECC_CURVE_OID" Value="2B2403030208010109"/>
+    <gp:Component Encoding="HEX" Name="ECC_QX" Value="01E03A4B868BAC4223F190756C02A9582C416DF0434669042948384E841DA6D6D48BDEC96C40C27A"/>
+    <gp:Component Encoding="HEX" Name="ECC_QY" Value="93F3E40FFC2C13575D52D39D266B3959C3EC8A1EB2F61176E07BDFD4A285EE44DE47F08BDB1B7522"/>
+  </gp:Value>
+</gp:KeyProfile>

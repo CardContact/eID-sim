@@ -67,38 +67,24 @@ param["PCAAID"] = new ByteString("A0 00 00 07 73 50 43 41", HEX);
 
 
 // Point 0
-var b = new Key();
-b.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-b.setComponent(Key.ECC_QX, new ByteString("26e848758cd601a62c3c96f29001259e4560763f9e79bf9e35e3b69103e4d442b4e9d4a8de208c45", HEX));
-b.setComponent(Key.ECC_QY, new ByteString("99caee26203cec3ff6ecdedd2d71bc6871d3a41da4d4d11885bb0b4c4bb05866eac2d9a6553fdf49", HEX));
+var b = new Key("kp_pip_blinding.xml");
 param["blinding"] = b;
 
 // Point 1
-var cipherPI = new Key();
-cipherPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-cipherPI.setComponent(Key.ECC_QX, new ByteString("474fb982ab20899d3633ae479b6983c309350f55aaeb3cf7d22eaf81d89488859da4bd3b03f3b0e2", HEX));
-cipherPI.setComponent(Key.ECC_QY, new ByteString("a5954fc8036359c530c87c05f5699b194a95b98d5a22e1cbf0e576e2d449ebf828a07456903b556a", HEX));
+var cipherPI = new Key("kp_pip_pi.xml");
 param["cipherPI"] = cipherPI;
 
 // Point 2
-var cipherPP = new Key();
-cipherPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-cipherPP.setComponent(Key.ECC_QX, new ByteString("18877740186ea40e51932bccecd38d971caaf07a9f26c4d50a8f32bce3b6a667962307fe8d66e3a5", HEX));
-cipherPP.setComponent(Key.ECC_QY, new ByteString("601b614fe272546c41e2efef64353b6f40729df4d7321fffdd026a58d2c473c185b5150870e7a319", HEX));
+var cipherPP = new Key("kp_pip_pp.xml");
 param["cipherPP"] = cipherPP;
 
 // Private Key PI
-var privPI = new Key();
-privPI.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-privPI.setComponent(Key.ECC_D, new ByteString("ea2dcb06e52c6111550de1590c2b6449591f91ad9c6a59a4baae2e3d4e44cb70ff1017a0c6463c21", HEX));
+var privPI = new Key("kp_prk_pip_pi.xml");
 param["privPI"] = privPI;
 
 // Private Key PP
-var privPP = new Key();
-privPP.setComponent(Key.ECC_CURVE_OID, new ByteString("brainpoolP320r1", OID));
-privPP.setComponent(Key.ECC_D, new ByteString("79a1524da2058c6e5d4c1af1a5f4ecb5aef1eb24241b5874ce6261b17ac30d8b6a5e15422030f959", HEX));
+var privPP = new Key("kp_prk_pip_pp.xml");
 param["privPP"] = privPP;
-
 
 
 /**

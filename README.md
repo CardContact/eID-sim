@@ -25,10 +25,10 @@ Select **run** from the context menu to start all tests.
 
 ## Regenerating the PIP
 
-The simulation contains pre-generated PIP in the kp_*pip*.xml files. To create a new PIP you need to load the
+The simulation contains pre-generated PIP in the kp_\*pip\*.xml files. To create a new PIP you need to load the
 PolymorphicPointGenerator class and run the test() method with
 
     > load("PolymorphicPointGenerator.js");
     > PolymorphicPointGenerator.test();
 
-This created new kp_*pip*.xml file that will be used the simulator and test suite after reload.
+This created new kp_\*pip\*.xml file that will be used the simulator and test suite after reload.

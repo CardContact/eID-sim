@@ -4,7 +4,7 @@ Simulation and test environment for Polymorphic Card Application (PCA) cards.
 ## Installation
 
 You need to install the Smart Card Shell available at [OpenSCDP](https://www.openscdp.org/scsh3/index.html). You need at
-least version 3.14.335.
+least version 3.14.339.
 
 Clone or unpack this project in a directory of your choice, start the Smart Card Shell and select
 the eID-sim directory as workspace.
@@ -22,3 +22,13 @@ and enter "r" in the shell. You should see the ATR from the simulator.
 Start the script **testing/PCA-tests/loadtests.js** to load the test suite. It shows the test outline in the explorer panel.
 Right-click on **eID Test Suite** to open the context menu and select **expand**. You should now see the test cases.
 Select **run** from the context menu to start all tests.
+
+## Regenerating the PIP
+
+The simulation contains pre-generated PIP in the kp_*pip*.xml files. To create a new PIP you need to load the
+PolymorphicPointGenerator class and run the test() method with
+
+    > load("PolymorphicPointGenerator.js");
+    > PolymorphicPointGenerator.test();
+
+This created new kp_*pip*.xml file that will be used the simulator and test suite after reload.

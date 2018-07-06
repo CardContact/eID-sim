@@ -1,8 +1,8 @@
 # eID-sim
 Simulation and test environment for eID cards and passports
 
-The eIDSim profile contains a full simulation of a id card providing an ePassport, eID and eSign application
-as defined in TR-03110 2.1 implementing BAC, SAC, PACE and EAC (1.11+2.1). It is functionally equivalent to
+The eIDSim profile contains a full simulation of an id card providing an ePassport, eID and eSign application
+as defined in TR-03110 2.1, implementing BAC, SAC, PACE and EAC (1.11+2.1). It is functionally equivalent to
 the German eID card and contains the required test data generators as well as a CVC PKI for the IS,AT and ST
 branch.
 

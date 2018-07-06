@@ -25,36 +25,36 @@
  */
 
 
-eIDCommandInterpreter                       = require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
+var eIDCommandInterpreter                       = require('eID/eIDCommandInterpreter').eIDCommandInterpreter;
 
-MFAccessController                          = require('eID/MFAccessController').MFAccessController;
-ePassAccessController                       = require('eID/ePassAccessController').ePassAccessController;
-eIDAccessController                         = require('eID/eIDAccessController').eIDAccessController;
-eSignAccessController                       = require('eID/eSignAccessController').eSignAccessController;
+var MFAccessController                          = require('eID/MFAccessController').MFAccessController;
+var ePassAccessController                       = require('eID/ePassAccessController').ePassAccessController;
+var eIDAccessController                         = require('eID/eIDAccessController').eIDAccessController;
+var eSignAccessController                       = require('eID/eSignAccessController').eSignAccessController;
 
-APDU                                        = require('cardsim/APDU').APDU;
-AuthenticationObject                        = require('cardsim/AuthenticationObject').AuthenticationObject;
-TrustAnchor                                 = require('cardsim/TrustAnchor').TrustAnchor;
-SignatureKey                                = require('cardsim/SignatureKey').SignatureKey;
-FileSelector                                = require('cardsim/FileSelector').FileSelector;
-FCP                                         = require('cardsim/FCP').FCP;
-TransparentEF                               = require('cardsim/TransparentEF').TransparentEF;
-FSNode                                      = require('cardsim/FSNode').FSNode;
-DF                                          = require('cardsim/DF').DF;
-SecureChannel                               = require('cardsim/SecureChannel').SecureChannel;
+var APDU                                        = require('cardsim/APDU').APDU;
+var AuthenticationObject                        = require('cardsim/AuthenticationObject').AuthenticationObject;
+var TrustAnchor                                 = require('cardsim/TrustAnchor').TrustAnchor;
+var SignatureKey                                = require('cardsim/SignatureKey').SignatureKey;
+var FileSelector                                = require('cardsim/FileSelector').FileSelector;
+var FCP                                         = require('cardsim/FCP').FCP;
+var TransparentEF                               = require('cardsim/TransparentEF').TransparentEF;
+var FSNode                                      = require('cardsim/FSNode').FSNode;
+var DF                                          = require('cardsim/DF').DF;
+var SecureChannel                               = require('cardsim/SecureChannel').SecureChannel;
 
-File                                        = require('scsh/file/File').File;
-EAC20                                       = require('scsh/eac/EAC20').EAC20;
-CVC                                         = require('scsh/eac/CVC').CVC;
-PACEInfo                                    = require('scsh/eac/PACE').PACEInfo;
-PACE                                        = require('scsh/eac/PACE').PACE;
-ChipAuthenticationInfo                      = require('scsh/eac/ChipAuthentication').ChipAuthenticationInfo;
-ChipAuthenticationDomainParameterInfo       = require('scsh/eac/ChipAuthentication').ChipAuthenticationDomainParameterInfo;
-ChipAuthenticationPublicKeyInfo             = require('scsh/eac/ChipAuthentication').ChipAuthenticationPublicKeyInfo;
-ChipAuthentication                          = require('scsh/eac/ChipAuthentication').ChipAuthentication;
-RestrictedIdentificationDomainParameterInfo = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationDomainParameterInfo;
-RestrictedIdentificationInfo                = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationInfo;
-RestrictedIdentification                    = require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
+var File                                        = require('scsh/file/File').File;
+var EAC20                                       = require('scsh/eac/EAC20').EAC20;
+var CVC                                         = require('scsh/eac/CVC').CVC;
+var PACEInfo                                    = require('scsh/eac/PACE').PACEInfo;
+var PACE                                        = require('scsh/eac/PACE').PACE;
+var ChipAuthenticationInfo                      = require('scsh/eac/ChipAuthentication').ChipAuthenticationInfo;
+var ChipAuthenticationDomainParameterInfo       = require('scsh/eac/ChipAuthentication').ChipAuthenticationDomainParameterInfo;
+var ChipAuthenticationPublicKeyInfo             = require('scsh/eac/ChipAuthentication').ChipAuthenticationPublicKeyInfo;
+var ChipAuthentication                          = require('scsh/eac/ChipAuthentication').ChipAuthentication;
+var RestrictedIdentificationDomainParameterInfo = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationDomainParameterInfo;
+var RestrictedIdentificationInfo                = require('scsh/eac/RestrictedIdentification').RestrictedIdentificationInfo;
+var RestrictedIdentification                    = require('scsh/eac/RestrictedIdentification').RestrictedIdentification;
 
 var mrz =	"TPD<<T220001293<<<<<<<<<<<<<<<" +
 		"6408125<1010318D<<<<<<<<<<<<<6" +

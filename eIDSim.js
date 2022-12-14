@@ -223,13 +223,13 @@ var dscert = new X509("C_DocSigner.cer");
 
 var gen = new CMSGenerator(CMSGenerator.TYPE_SIGNED_DATA);
 gen.setDataContent(cardSecurity.getBytes());
-gen.addSigner(dskey, dscert, new ByteString("id-sha256", OID), true);
+gen.addSigner(dskey, dscert, "SHA256withECDSA", true);
 var signedCardSecurity = gen.generate(new ByteString("id-SecurityObject", OID));
 //print(new ASN1(signedCardSecurity));
 
 var gen = new CMSGenerator(CMSGenerator.TYPE_SIGNED_DATA);
 gen.setDataContent(chipSecurity.getBytes());
-gen.addSigner(dskey, dscert, new ByteString("id-sha256", OID), true);
+gen.addSigner(dskey, dscert, "SHA256withECDSA", true);
 var signedChipSecurity = gen.generate(new ByteString("id-SecurityObject", OID));
 //print(new ASN1(signedChipSecurity));
 
